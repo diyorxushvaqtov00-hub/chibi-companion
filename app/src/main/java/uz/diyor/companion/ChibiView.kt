@@ -8,6 +8,7 @@ import android.graphics.Path
 import android.graphics.RectF
 import android.view.View
 import kotlin.math.sin
+import kotlin.math.abs
 
 /**
  * Lightweight, locally drawn chibi mascot. No network or image asset is required.
