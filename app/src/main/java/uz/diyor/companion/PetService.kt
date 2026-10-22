@@ -64,7 +64,7 @@ class PetService : Service() {
             WindowManager.LayoutParams.WRAP_CONTENT,
             WindowManager.LayoutParams.WRAP_CONTENT,
             WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
-            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
+            WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL,
             PixelFormat.TRANSLUCENT
         ).apply {
             gravity = Gravity.TOP or Gravity.START
@@ -86,8 +86,12 @@ class PetService : Service() {
                     val dy = event.rawY - startY
                     if (kotlin.math.abs(dx) > 8 || kotlin.math.abs(dy) > 8) moved = true
                     if (moved) {
-                        params.x = (originalX + dx).toInt().coerceAtLeast(0)
-                        params.y = (originalY + dy).toInt().coerceAtLeast(0)
+                        // Keep the character fully inside the visible screen bounds.
+                        val metrics = resources.displayMetrics
+                        val maxX = (metrics.widthPixels - pet.width).coerceAtLeast(0)
+                        val maxY = (metrics.heightPixels - pet.height).coerceAtLeast(0)
+                        params.x = (originalX + dx).toInt().coerceIn(0, maxX)
+                        params.y = (originalY + dy).toInt().coerceIn(0, maxY)
                         try { windowManager?.updateViewLayout(pet, params) } catch (_: Exception) {}
                     }
                     true
