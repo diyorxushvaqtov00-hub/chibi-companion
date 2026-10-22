@@ -15,16 +15,13 @@ import android.os.IBinder
 import android.provider.Settings
 import android.view.Gravity
 import android.view.MotionEvent
-import android.view.View
 import android.view.WindowManager
-import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 
 class PetService : Service() {
     private var windowManager: WindowManager? = null
     private var petView: TextView? = null
-    private var layoutParams: WindowManager.LayoutParams? = null
     private var startX = 0f
     private var startY = 0f
     private var originalX = 0
@@ -78,13 +75,10 @@ class PetService : Service() {
             }
             contentDescription = "Malika chibi yordamchi"
         }
-        val type = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
-            WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
-        else @Suppress("DEPRECATION") WindowManager.LayoutParams.TYPE_PHONE
         val params = WindowManager.LayoutParams(
             WindowManager.LayoutParams.WRAP_CONTENT,
             WindowManager.LayoutParams.WRAP_CONTENT,
-            type,
+            WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
             WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
             PixelFormat.TRANSLUCENT
         ).apply {
@@ -123,7 +117,6 @@ class PetService : Service() {
             }
         }
         petView = pet
-        layoutParams = params
         windowManager?.addView(pet, params)
     }
 
