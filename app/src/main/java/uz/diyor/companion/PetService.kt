@@ -109,7 +109,10 @@ class PetService : Service() {
                 }
                 MotionEvent.ACTION_UP -> {
                     if (!moved) {
-                        Toast.makeText(this, "Salom! Men Malika. Meni sudrab joyimni o‘zgartirishing mumkin.", Toast.LENGTH_LONG).show()
+                        val chat = Intent(this, ChatActivity::class.java).apply {
+                            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                        }
+                        startActivity(chat)
                     }
                     true
                 }
