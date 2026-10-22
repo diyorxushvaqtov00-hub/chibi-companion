@@ -24,6 +24,15 @@ class ChibiView(context: Context) : View(context) {
         isClickable = true
     }
 
+    var compactMode: Boolean = false
+        set(value) { field = value; requestLayout(); invalidate() }
+
+    override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+        val w = d(if (compactMode) 32f else 64f).toInt()
+        val h = d(if (compactMode) 39f else 78f).toInt()
+        setMeasuredDimension(w, h)
+    }
+
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
         val millis = System.currentTimeMillis()
