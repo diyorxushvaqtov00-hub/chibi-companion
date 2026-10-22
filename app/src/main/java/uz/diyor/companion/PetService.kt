@@ -8,20 +8,17 @@ import android.app.Service
 import android.content.Intent
 import android.content.pm.ServiceInfo
 import android.graphics.PixelFormat
-import android.graphics.Color
-import android.graphics.drawable.GradientDrawable
 import android.os.Build
 import android.os.IBinder
 import android.provider.Settings
 import android.view.Gravity
 import android.view.MotionEvent
 import android.view.WindowManager
-import android.widget.TextView
 import android.widget.Toast
 
 class PetService : Service() {
     private var windowManager: WindowManager? = null
-    private var petView: TextView? = null
+    private var petView: ChibiView? = null
     private var startX = 0f
     private var startY = 0f
     private var originalX = 0
@@ -62,19 +59,7 @@ class PetService : Service() {
 
     private fun showPet() {
         windowManager = getSystemService(WINDOW_SERVICE) as WindowManager
-        val pet = TextView(this).apply {
-            text = "👑\n🖤"
-            textSize = 34f
-            gravity = Gravity.CENTER
-            setTextColor(Color.WHITE)
-            setPadding(10, 8, 10, 8)
-            background = GradientDrawable().apply {
-                setColor(Color.argb(220, 45, 12, 36))
-                cornerRadius = 48f
-                setStroke(3, Color.rgb(210, 55, 100))
-            }
-            contentDescription = "Malika chibi yordamchi"
-        }
+        val pet = ChibiView(this)
         val params = WindowManager.LayoutParams(
             WindowManager.LayoutParams.WRAP_CONTENT,
             WindowManager.LayoutParams.WRAP_CONTENT,
