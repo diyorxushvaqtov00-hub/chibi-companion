@@ -12,6 +12,9 @@ import android.widget.ScrollView
 import android.widget.TextView
 
 class ChatActivity : Activity() {
+    override fun onResume() { super.onResume(); getSharedPreferences("companion_state", MODE_PRIVATE).edit().putBoolean("app_visible", true).apply() }
+    override fun onPause() { getSharedPreferences("companion_state", MODE_PRIVATE).edit().putBoolean("app_visible", false).apply(); super.onPause() }
+
     private lateinit var messages: LinearLayout
     private lateinit var input: EditText
     private fun dp(v: Int) = (v * resources.displayMetrics.density).toInt()
