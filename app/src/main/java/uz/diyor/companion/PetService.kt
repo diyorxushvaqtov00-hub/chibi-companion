@@ -15,6 +15,8 @@ import android.view.Gravity
 import android.view.MotionEvent
 import android.view.WindowManager
 import android.widget.Toast
+import android.os.Handler
+import android.os.Looper
 
 class PetService : Service() {
     private var windowManager: WindowManager? = null
@@ -24,6 +26,28 @@ class PetService : Service() {
     private var originalX = 0
     private var originalY = 0
     private var moved = false
+    private val handler = Handler(Looper.getMainLooper())
+    private var compactNow = false
+    private var overlayParams: WindowManager.LayoutParams? = null
+    private val resizeCheck = object : Runnable {
+        override fun run() {
+            val prefs = getSharedPreferences("companion_state", MODE_PRIVATE)
+            val appVisible = prefs.getBoolean("app_visible", false)
+            val shouldCompact = !appVisible
+            if (shouldCompact != compactNow) setCompactMode(shouldCompact)
+            handler.postDelayed(this, 500L)
+        }
+    }
+
+    private fun setCompactMode(compact: Boolean) {
+        val pet = petView ?: return
+        val params = overlayParams ?: return
+        compactNow = compact
+        pet.compactMode = compact
+        params.width = (resources.displayMetrics.density * if (compact) 32f else 64f).toInt()
+        params.height = (resources.displayMetrics.density * if (compact) 39f else 78f).toInt()
+        try { windowManager?.updateViewLayout(pet, params) } catch (_: Exception) {}
+    }
 
     override fun onBind(intent: Intent?): IBinder? = null
 
@@ -61,13 +85,14 @@ class PetService : Service() {
         windowManager = getSystemService(WINDOW_SERVICE) as WindowManager
         val pet = ChibiView(this)
         val params = WindowManager.LayoutParams(
-            WindowManager.LayoutParams.WRAP_CONTENT,
-            WindowManager.LayoutParams.WRAP_CONTENT,
+            (resources.displayMetrics.density * 64f).toInt(),
+            (resources.displayMetrics.density * 78f).toInt(),
             WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
             WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL,
             PixelFormat.TRANSLUCENT
         ).apply {
             gravity = Gravity.TOP or Gravity.START
+            alpha = 0.78f
             x = 20
             y = 180
         }
@@ -109,14 +134,19 @@ class PetService : Service() {
             }
         }
         petView = pet
+        overlayParams = params
         windowManager?.addView(pet, params)
+        handler.removeCallbacks(resizeCheck)
+        handler.post(resizeCheck)
     }
 
     override fun onDestroy() {
         try {
             petView?.let { windowManager?.removeView(it) }
         } catch (_: Exception) {}
+        handler.removeCallbacks(resizeCheck)
         petView = null
+        overlayParams = null
         stopForeground(STOP_FOREGROUND_REMOVE)
         super.onDestroy()
     }
