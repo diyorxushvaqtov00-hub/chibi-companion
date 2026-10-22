@@ -18,17 +18,38 @@ class ChibiView(context: Context) : View(context) {
     private fun d(v: Float) = v * density
 
     init {
-        contentDescription = "Malika, suzuvchi chibi yordamchi"
+        contentDescription = "Nino uslubidagi chibi yordamchi"
         layoutParams = android.view.ViewGroup.LayoutParams(d(104f).toInt(), d(126f).toInt())
         isClickable = true
     }
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
-        val t = System.currentTimeMillis() / 360.0
-        val bob = sin(t).toFloat() * d(2.5f)
+        val millis = System.currentTimeMillis()
+        val mode = ((millis / 2200L) % 14L).toInt()
+        val phase = (millis % 2200L) / 2200f
+        val wave = sin(phase * Math.PI * 2).toFloat()
+        val bob = when (mode) {
+            0 -> wave * d(2f)
+            1 -> abs(wave) * d(7f)
+            2 -> d(3f)
+            3 -> -abs(wave) * d(4f)
+            4 -> wave * d(5f)
+            5 -> abs(wave) * d(2f)
+            6 -> wave * d(3f)
+            7 -> abs(wave) * d(6f)
+            8 -> wave * d(2f)
+            9 -> abs(wave) * d(3f)
+            10 -> wave * d(4f)
+            11 -> abs(wave) * d(4f)
+            12 -> wave * d(2f)
+            else -> abs(wave) * d(5f)
+        }
         canvas.save()
         canvas.translate(0f, bob)
+        if (mode == 2 || mode == 8) canvas.rotate(if (mode == 2) -5f else 5f, width / 2f, height / 2f)
+        if (mode == 6) canvas.rotate(wave * 7f, width / 2f, height / 2f)
+        if (mode == 13) canvas.rotate(wave * 18f, width / 2f, height / 2f)
         val cx = width / 2f
         fun paint(color: Int, style: Paint.Style = Paint.Style.FILL, stroke: Float = 1f) {
             p.color = color; p.style = style; p.strokeWidth = d(stroke); p.strokeCap = Paint.Cap.ROUND
@@ -39,7 +60,7 @@ class ChibiView(context: Context) : View(context) {
         canvas.drawOval(RectF(cx-d(28f), d(112f), cx+d(28f), d(120f)), p)
 
         // Hair behind the body
-        paint(Color.rgb(43, 20, 49))
+        paint(Color.rgb(92, 28, 66))
         canvas.drawOval(RectF(cx-d(28f), d(23f), cx+d(29f), d(84f)), p)
         canvas.drawRoundRect(RectF(cx-d(25f), d(54f), cx-d(15f), d(91f)), d(8f), d(8f), p)
         canvas.drawRoundRect(RectF(cx+d(15f), d(52f), cx+d(25f), d(90f)), d(8f), d(8f), p)
@@ -63,7 +84,7 @@ class ChibiView(context: Context) : View(context) {
         canvas.drawOval(RectF(cx-d(23f), d(21f), cx+d(23f), d(70f)), p)
 
         // Fringe and side locks
-        paint(Color.rgb(37, 19, 43))
+        paint(Color.rgb(125, 35, 82))
         val fringe = Path().apply {
             moveTo(cx-d(23f), d(44f)); quadTo(cx-d(29f), d(15f), cx, d(17f))
             quadTo(cx+d(29f), d(15f), cx+d(23f), d(44f))
@@ -71,14 +92,14 @@ class ChibiView(context: Context) : View(context) {
             lineTo(cx-d(7f), d(33f)); lineTo(cx-d(16f), d(44f)); close()
         }
         canvas.drawPath(fringe, p)
-        paint(Color.rgb(108, 48, 132), Paint.Style.STROKE, 2f)
+        paint(Color.rgb(255, 105, 177), Paint.Style.STROKE, 2f)
         canvas.drawArc(RectF(cx-d(20f), d(22f), cx+d(20f), d(56f)), 205f, 130f, false, p)
 
         // Big anime eyes
         paint(Color.WHITE)
         canvas.drawOval(RectF(cx-d(16f), d(42f), cx-d(4f), d(57f)), p)
         canvas.drawOval(RectF(cx+d(4f), d(42f), cx+d(16f), d(57f)), p)
-        paint(Color.rgb(139, 55, 207))
+        paint(Color.rgb(155, 73, 210))
         canvas.drawOval(RectF(cx-d(14f), d(44f), cx-d(6f), d(56f)), p)
         canvas.drawOval(RectF(cx+d(6f), d(44f), cx+d(14f), d(56f)), p)
         paint(Color.rgb(35, 17, 48))
@@ -95,24 +116,35 @@ class ChibiView(context: Context) : View(context) {
         paint(Color.rgb(133, 46, 80), Paint.Style.STROKE, 1.5f)
         canvas.drawArc(RectF(cx-d(4f), d(55f), cx+d(4f), d(62f)), 15f, 150f, false, p)
 
-        // Crown
-        paint(Color.rgb(255, 203, 75))
-        val crown = Path().apply {
-            moveTo(cx-d(15f), d(23f)); lineTo(cx-d(18f), d(11f))
-            lineTo(cx-d(8f), d(17f)); lineTo(cx, d(5f))
-            lineTo(cx+d(8f), d(17f)); lineTo(cx+d(18f), d(11f))
-            lineTo(cx+d(15f), d(23f)); close()
+        // Nino-inspired twin butterfly clips
+        paint(Color.rgb(255, 92, 170))
+        val clipLeft = Path().apply {
+            moveTo(cx-d(19f), d(28f)); lineTo(cx-d(27f), d(22f))
+            lineTo(cx-d(26f), d(31f)); lineTo(cx-d(19f), d(34f)); close()
         }
-        canvas.drawPath(crown, p)
-        paint(Color.rgb(255, 245, 190))
-        canvas.drawCircle(cx, d(12f), d(2f), p)
-        canvas.drawCircle(cx-d(12f), d(17f), d(1.5f), p)
-        canvas.drawCircle(cx+d(12f), d(17f), d(1.5f), p)
+        val clipRight = Path().apply {
+            moveTo(cx+d(19f), d(28f)); lineTo(cx+d(27f), d(22f))
+            lineTo(cx+d(26f), d(31f)); lineTo(cx+d(19f), d(34f)); close()
+        }
+        canvas.drawPath(clipLeft, p)
+        canvas.drawPath(clipRight, p)
+        paint(Color.rgb(255, 220, 240))
+        canvas.drawCircle(cx-d(22f), d(28f), d(1.5f), p)
+        canvas.drawCircle(cx+d(22f), d(28f), d(1.5f), p)
 
         // Little sparkles
         paint(Color.rgb(255, 150, 225))
         canvas.drawCircle(cx-d(35f), d(42f), d(2f), p)
         canvas.drawCircle(cx+d(35f), d(63f), d(2f), p)
+        if (mode == 3 || mode == 11 || mode == 12) {
+            paint(Color.rgb(255, 155, 215))
+            val heart = Path().apply {
+                moveTo(cx+d(30f), d(34f))
+                cubicTo(cx+d(25f), d(28f), cx+d(20f), d(35f), cx+d(30f), d(41f))
+                cubicTo(cx+d(40f), d(35f), cx+d(35f), d(28f), cx+d(30f), d(34f))
+            }
+            canvas.drawPath(heart, p)
+        }
         canvas.restore()
         postInvalidateDelayed(80)
     }
