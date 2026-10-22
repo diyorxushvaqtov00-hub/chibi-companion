@@ -66,6 +66,16 @@ class MainActivity : Activity() {
                 Toast.makeText(this, "Malika ishga tushdi!", Toast.LENGTH_SHORT).show()
             }
         })
+        root.addView(makeButton("Malika bilan suhbatlashish") {
+            startActivity(Intent(this, ChatActivity::class.java))
+        })
+        root.addView(TextView(this).apply {
+            text = "Suhbat hozircha offline demo: javoblar oldindan belgilangan. Haqiqiy AI uchun keyin xavfsiz AI ulanishi qo‘shiladi."
+            textSize = 12f
+            gravity = Gravity.CENTER
+            setTextColor(Color.rgb(210, 150, 190))
+            setPadding(0, dp(8), 0, dp(8))
+        })
         root.addView(makeButton("Yordamchini to‘xtatish") {
             stopService(Intent(this, PetService::class.java))
         })
