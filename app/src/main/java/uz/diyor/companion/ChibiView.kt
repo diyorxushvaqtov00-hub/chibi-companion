@@ -20,7 +20,7 @@ class ChibiView(context: Context) : View(context) {
 
     init {
         contentDescription = "Nino uslubidagi chibi yordamchi"
-        layoutParams = android.view.ViewGroup.LayoutParams(d(104f).toInt(), d(126f).toInt())
+        layoutParams = android.view.ViewGroup.LayoutParams(d(76f).toInt(), d(92f).toInt())
         isClickable = true
     }
 
@@ -47,6 +47,7 @@ class ChibiView(context: Context) : View(context) {
             else -> abs(wave) * d(5f)
         }
         canvas.save()
+        canvas.scale(0.72f, 0.72f)
         canvas.translate(0f, bob)
         if (mode == 2 || mode == 8) canvas.rotate(if (mode == 2) -5f else 5f, width / 2f, height / 2f)
         if (mode == 6) canvas.rotate(wave * 7f, width / 2f, height / 2f)
@@ -55,6 +56,10 @@ class ChibiView(context: Context) : View(context) {
         fun paint(color: Int, style: Paint.Style = Paint.Style.FILL, stroke: Float = 1f) {
             p.color = color; p.style = style; p.strokeWidth = d(stroke); p.strokeCap = Paint.Cap.ROUND
         }
+
+        // Visible boundary marks the compact touch area.
+        paint(Color.argb(210, 190, 115, 255), Paint.Style.STROKE, 1.4f)
+        canvas.drawRoundRect(RectF(d(1f), d(1f), d(102f), d(124f)), d(10f), d(10f), p)
 
         // Soft purple shadow
         paint(Color.argb(70, 210, 70, 255))
