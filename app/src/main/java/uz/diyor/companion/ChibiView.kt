@@ -48,7 +48,7 @@ class ChibiView(context: Context) : View(context) {
         paint(Color.rgb(82, 35, 112))
         val dress = Path().apply {
             moveTo(cx-d(13f), d(76f)); lineTo(cx+d(13f), d(76f))
-            lineTo(cx+d(21f), d(101f)); quadraticTo(cx, d(109f), cx-d(21f), d(101f)); close()
+            lineTo(cx+d(21f), d(101f)); quadTo(cx, d(109f), cx-d(21f), d(101f)); close()
         }
         canvas.drawPath(dress, p)
         paint(Color.rgb(244, 193, 220))
@@ -65,8 +65,8 @@ class ChibiView(context: Context) : View(context) {
         // Fringe and side locks
         paint(Color.rgb(37, 19, 43))
         val fringe = Path().apply {
-            moveTo(cx-d(23f), d(44f)); quadraticTo(cx-d(29f), d(15f), cx, d(17f))
-            quadraticTo(cx+d(29f), d(15f), cx+d(23f), d(44f))
+            moveTo(cx-d(23f), d(44f)); quadTo(cx-d(29f), d(15f), cx, d(17f))
+            quadTo(cx+d(29f), d(15f), cx+d(23f), d(44f))
             lineTo(cx+d(9f), d(34f)); lineTo(cx+d(1f), d(43f))
             lineTo(cx-d(7f), d(33f)); lineTo(cx-d(16f), d(44f)); close()
         }
