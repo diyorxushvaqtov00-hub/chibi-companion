@@ -58,10 +58,10 @@ class ChibiView(context: Context) : View(context) {
         canvas.save()
         canvas.scale(width / d(104f), height / d(126f))
         canvas.translate(0f, bob)
-        if (mode == 2 || mode == 8) canvas.rotate(if (mode == 2) -5f else 5f, width / 2f, height / 2f)
-        if (mode == 6) canvas.rotate(wave * 7f, width / 2f, height / 2f)
-        if (mode == 13) canvas.rotate(wave * 18f, width / 2f, height / 2f)
-        val cx = width / 2f
+        if (mode == 2 || mode == 8) canvas.rotate(if (mode == 2) -5f else 5f, d(52f), d(63f))
+        if (mode == 6) canvas.rotate(wave * 7f, d(52f), d(63f))
+        if (mode == 13) canvas.rotate(wave * 18f, d(52f), d(63f))
+        val cx = d(52f)
         fun paint(color: Int, style: Paint.Style = Paint.Style.FILL, stroke: Float = 1f) {
             p.color = color; p.style = style; p.strokeWidth = d(stroke); p.strokeCap = Paint.Cap.ROUND
         }
