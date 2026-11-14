@@ -9,6 +9,7 @@ import com.google.ai.edge.litertlm.Engine
 import com.google.ai.edge.litertlm.EngineConfig
 import com.google.ai.edge.litertlm.Message
 import java.io.File
+import java.security.MessageDigest
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
@@ -31,8 +32,12 @@ class LocalLiteRtProvider(
     init {
         executor.execute {
             try {
-                require(modelFile.isFile && modelFile.length() > 0L) {
-                    "AI modeli topilmadi. Avval modelni yuklab oling."
+                require(modelFile.isFile && modelFile.length() in 550_000_000L..700_000_000L) {
+                    "AI modeli topilmadi yoki hajmi noto‘g‘ri. Modelni qayta yuklab oling."
+                }
+                val actualHash = sha256(modelFile)
+                require(actualHash == AiraModelDownloader.EXPECTED_SHA256) {
+                    "Model SHA-256 tekshiruvidan o‘tmadi. Model fayli buzilgan; uni qayta yuklab oling."
                 }
                 val candidate = Engine(
                     EngineConfig(
@@ -89,6 +94,19 @@ class LocalLiteRtProvider(
                 )
             }
         }
+    }
+
+    private fun sha256(file: File): String {
+        val digest = MessageDigest.getInstance("SHA-256")
+        file.inputStream().buffered().use { input ->
+            val buffer = ByteArray(256 * 1024)
+            while (true) {
+                val count = input.read(buffer)
+                if (count < 0) break
+                digest.update(buffer, 0, count)
+            }
+        }
+        return digest.digest().joinToString("") { "%02x".format(it.toInt() and 0xff) }
     }
 
     override fun close() {
