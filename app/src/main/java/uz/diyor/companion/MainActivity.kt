@@ -58,7 +58,7 @@ class MainActivity : Activity() {
             setPadding(0, dp(8), 0, dp(8))
         })
         root.addView(TextView(this).apply {
-            text = "Sening virtual hamrohing.\nSovuqqon aql, yaqinlarga mehr.\n\nM1 — birinchi ishlaydigan prototip."
+            text = "Sening virtual hamrohing.\nSovuqqon aql, yaqinlarga mehr.\n\nMahalliy AI • Xotira • Ovoz • Rasm matnini o‘qish."
             textSize = 16f
             gravity = Gravity.CENTER
             setTextColor(Color.rgb(202, 196, 220))
@@ -75,6 +75,9 @@ class MainActivity : Activity() {
         root.addView(makeButton("2. AIRA yordamchini ishga tushirish") {
             startCompanion()
         })
+        root.addView(makeButton("Rasmni AIRA bilan o‘qish") {
+            startActivity(Intent(this, VisionActivity::class.java))
+        })
         root.addView(makeButton("AIRA xotiralarini boshqarish") {
             startActivity(Intent(this, MemoryActivity::class.java))
         })
@@ -85,7 +88,7 @@ class MainActivity : Activity() {
             startActivity(Intent(this, ChatActivity::class.java))
         })
         root.addView(TextView(this).apply {
-            text = "AIRA mahalliy AI modelini alohida yuklab ishlata oladi. Model o‘rnatilmagan bo‘lsa, suhbat offline demo rejimida ishlaydi. Ovoz va 3D keyingi bosqichlarda ulanadi."
+            text = "AIRA mahalliy AI modelini alohida yuklab ishlata oladi. Model o‘rnatilmagan bo‘lsa, suhbat offline demo rejimida ishlaydi. Ovoz ishlaydi. Rasm matnini telefonda ajratish ham mavjud. 3D keyingi bosqichda."
             textSize = 12f
             gravity = Gravity.CENTER
             setTextColor(Color.rgb(165, 145, 205))
