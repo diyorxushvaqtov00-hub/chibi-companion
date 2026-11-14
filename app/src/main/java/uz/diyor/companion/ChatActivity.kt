@@ -119,7 +119,7 @@ class ChatActivity : Activity() {
         appendMessage("Sen", text)
         input.setText("")
 
-        val contextMessages = history.takeLast(24).map { (who, content) ->
+        val contextMessages = history.dropLast(1).takeLast(24).map { (who, content) ->
             AiMessage(
                 role = if (who == "Sen") AiRole.USER else AiRole.ASSISTANT,
                 content = content
@@ -164,10 +164,10 @@ class ChatActivity : Activity() {
         val bubble = TextView(this).apply {
             this.text = "$who\n$text"
             textSize = 15f
-            setTextColor(if (who == "AIRA") Color.rgb(225, 213, 255) else Color.WHITE)
+            setTextColor(if (who.startsWith("AIRA")) Color.rgb(225, 213, 255) else Color.WHITE)
             setPadding(dp(14), dp(10), dp(14), dp(10))
             background = rounded(
-                if (who == "AIRA") Color.rgb(38, 29, 62) else Color.rgb(42, 40, 50),
+                if (who.startsWith("AIRA")) Color.rgb(38, 29, 62) else Color.rgb(42, 40, 50),
                 dp(15).toFloat()
             )
         }
