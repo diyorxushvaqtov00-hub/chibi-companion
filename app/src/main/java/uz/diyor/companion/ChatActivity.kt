@@ -13,12 +13,21 @@ import android.widget.ScrollView
 import android.widget.TextView
 import org.json.JSONArray
 import org.json.JSONObject
+import uz.diyor.companion.ai.AiCallback
+import uz.diyor.companion.ai.AiFailure
+import uz.diyor.companion.ai.AiMessage
+import uz.diyor.companion.ai.AiProvider
+import uz.diyor.companion.ai.AiRequest
+import uz.diyor.companion.ai.AiRole
+import uz.diyor.companion.ai.AiraPersona
+import uz.diyor.companion.ai.OfflineDemoProvider
 
 class ChatActivity : Activity() {
     private lateinit var messages: LinearLayout
     private lateinit var scroll: ScrollView
     private lateinit var input: EditText
     private val history = mutableListOf<Pair<String, String>>()
+    private val aiProvider: AiProvider = OfflineDemoProvider()
     private val prefs by lazy { getSharedPreferences("aira_chat", MODE_PRIVATE) }
 
     override fun onResume() {
@@ -109,29 +118,38 @@ class ChatActivity : Activity() {
         if (text.isEmpty()) return
         appendMessage("Sen", text)
         input.setText("")
-        appendMessage("AIRA", makeReply(text))
-    }
 
-    private fun makeReply(message: String): String {
-        val lower = message.lowercase()
-        return when {
-            listOf("salom", "assalom", "hello", "hi").any { lower.contains(it) } ->
-                "Salom. Seni eshitib turibman. Nima gap?"
-            listOf("isming", "kimsan", "kim san").any { lower.contains(it) } ->
-                "Men AIRA — virtual hamrohingman. Sovuqqon fikrlayman, ammo yaqinlarimga befarq emasman."
-            listOf("rahmat", "raxmat").any { lower.contains(it) } ->
-                "Arzimaydi. Kerak bo‘lsa, yana yordam beraman."
-            listOf("xafa", "yomonman", "zerik", "tushkun").any { lower.contains(it) } ->
-                "Tushundim. Maslahat berishga shoshilmayman. Nima bo‘lganini aytib berishing mumkin. Men tinglayman."
-            listOf("anime", "manga", "manhwa").any { lower.contains(it) } ->
-                "Qiziqarli mavzu. Qahramonning kuchidan ko‘ra, uning qarorlari ko‘proq narsani ochib beradi."
-            listOf("yordam", "reja", "qanday").any { lower.contains(it) } ->
-                "Avval muammoni aniq belgilaymiz. Keyin eng sodda va samarali yechimni tanlaymiz."
-            lower.contains("?") ->
-                "Savolingni tushundim. Hozir men demo rejimidaman, shuning uchun tashqi ma’lumotni tekshira olmayman. Keyingi bosqichda AI modeli ulanadi."
-            else ->
-                "Tushunarli. Davom et — gaplaringni diqqat bilan kuzatyapman."
+        val contextMessages = history.takeLast(24).map { (who, content) ->
+            AiMessage(
+                role = if (who == "Sen") AiRole.USER else AiRole.ASSISTANT,
+                content = content
+            )
         }
+        val request = AiRequest(
+            messages = contextMessages,
+            userMessage = text,
+            systemInstruction = AiraPersona.systemInstruction
+        )
+
+        aiProvider.generate(request, object : AiCallback {
+            override fun onSuccess(reply: uz.diyor.companion.ai.AiReply) {
+                runOnUiThread {
+                    val label = if (reply.isFallback) "AIRA · demo" else "AIRA"
+                    appendMessage(label, reply.text)
+                }
+            }
+
+            override fun onFailure(failure: AiFailure) {
+                runOnUiThread {
+                    val reason = when (failure) {
+                        is AiFailure.Unavailable -> failure.reason
+                        is AiFailure.InvalidRequest -> failure.reason
+                        is AiFailure.Internal -> failure.reason
+                    }
+                    appendMessage("AIRA", "Hozir javob bera olmadim: $reason")
+                }
+            }
+        })
     }
 
     private fun appendMessage(who: String, text: String) {
