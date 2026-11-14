@@ -18,6 +18,11 @@ import android.view.MotionEvent
 import android.view.WindowManager
 
 class PetService : Service() {
+    companion object {
+        const val ACTION_SHOW = "uz.diyor.companion.action.SHOW"
+        const val ACTION_HIDE = "uz.diyor.companion.action.HIDE"
+    }
+
     private var windowManager: WindowManager? = null
     private var petView: ChibiView? = null
     private var startX = 0f
@@ -83,8 +88,19 @@ class PetService : Service() {
         } else {
             startForeground(10, notification)
         }
-        if (petView == null) showPet()
+        when (intent?.action) {
+            ACTION_HIDE -> hidePet()
+            ACTION_SHOW -> if (petView == null) showPet()
+            else -> if (petView == null) showPet()
+        }
         return START_STICKY
+    }
+
+    private fun hidePet() {
+        handler.removeCallbacks(resizeCheck)
+        try { petView?.let { windowManager?.removeView(it) } } catch (_: Exception) { }
+        petView = null
+        overlayParams = null
     }
 
     private fun showPet() {
@@ -147,10 +163,7 @@ class PetService : Service() {
     }
 
     override fun onDestroy() {
-        try { petView?.let { windowManager?.removeView(it) } } catch (_: Exception) { }
-        handler.removeCallbacks(resizeCheck)
-        petView = null
-        overlayParams = null
+        hidePet()
         stopForeground(STOP_FOREGROUND_REMOVE)
         super.onDestroy()
     }
