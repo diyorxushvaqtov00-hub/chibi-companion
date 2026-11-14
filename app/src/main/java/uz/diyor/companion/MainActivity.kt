@@ -1,7 +1,9 @@
 package uz.diyor.companion
 
+import android.Manifest
 import android.app.Activity
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -14,6 +16,10 @@ import android.widget.TextView
 import android.widget.Toast
 
 class MainActivity : Activity() {
+    companion object {
+        private const val REQUEST_NOTIFICATIONS = 410
+    }
+
     override fun onResume() {
         super.onResume()
         getSharedPreferences("companion_state", MODE_PRIVATE).edit().putBoolean("app_visible", true).apply()
@@ -67,13 +73,7 @@ class MainActivity : Activity() {
             }
         })
         root.addView(makeButton("2. AIRA yordamchini ishga tushirish") {
-            if (!Settings.canDrawOverlays(this)) {
-                Toast.makeText(this, "Avval ekran ustida ko‘rinish ruxsatini bering", Toast.LENGTH_LONG).show()
-            } else {
-                val intent = Intent(this, PetService::class.java)
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) startForegroundService(intent) else startService(intent)
-                Toast.makeText(this, "AIRA ishga tushdi", Toast.LENGTH_SHORT).show()
-            }
+            startCompanion()
         })
         root.addView(makeButton("AIRA bilan suhbatlashish") {
             startActivity(Intent(this, ChatActivity::class.java))
@@ -96,6 +96,47 @@ class MainActivity : Activity() {
             setPadding(0, dp(24), 0, 0)
         })
         setContentView(root)
+    }
+
+    private fun startCompanion() {
+        if (!Settings.canDrawOverlays(this)) {
+            Toast.makeText(this, "Avval ekran ustida ko‘rinish ruxsatini bering", Toast.LENGTH_LONG).show()
+            return
+        }
+
+        if (Build.VERSION.SDK_INT >= 33 &&
+            checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
+        ) {
+            requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS), REQUEST_NOTIFICATIONS)
+            return
+        }
+        launchCompanionService()
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == REQUEST_NOTIFICATIONS) {
+            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                launchCompanionService()
+            } else {
+                Toast.makeText(
+                    this,
+                    "Bildirishnoma ruxsati berilmadi. AIRA ishga tushadi, lekin bildirishnoma ko‘rinishi cheklanishi mumkin.",
+                    Toast.LENGTH_LONG
+                ).show()
+                launchCompanionService()
+            }
+        }
+    }
+
+    private fun launchCompanionService() {
+        val intent = Intent(this, PetService::class.java)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) startForegroundService(intent) else startService(intent)
+        Toast.makeText(this, "AIRA ishga tushdi", Toast.LENGTH_SHORT).show()
     }
 
     private fun makeButton(label: String, action: () -> Unit) = Button(this).apply {
