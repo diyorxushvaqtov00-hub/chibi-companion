@@ -77,9 +77,9 @@ class ModelDownloadActivity : Activity() {
     }
 
     private fun refreshInstalledState() {
-        val valid = downloader.installedModel()
+        val valid = downloader.modelFileIfPresent()
         if (valid != null) {
-            status.text = "Model tayyor. AIRA mahalliy AI rejimida ishlashi mumkin."
+            status.text = "Model fayli topildi. AIRA ishga tushganda uning yaxlitligini tekshiradi."
             progress.progress = 1000
             downloadButton.text = "Model qayta yuklash"
         } else {
