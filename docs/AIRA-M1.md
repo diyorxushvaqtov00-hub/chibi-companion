@@ -16,7 +16,8 @@ M1 is the first installable Android prototype, not the finished companion.
 3. Keep the floating overlay draggable and tappable.
 4. Show a smaller avatar when the main app is not open.
 5. Add a small offline persona demo in Uzbek.
-6. Build a debug APK through GitHub Actions.
+6. Request Android 13+ notification permission when the user starts the companion.
+7. Build a debug APK through GitHub Actions.
 
 ## Explicit limitations
 - The Canvas avatar is a 2D placeholder, not a true 3D model.
@@ -30,6 +31,7 @@ M1 is the first installable Android prototype, not the finished companion.
 - [ ] APK installs on HONOR X9b / Android 15.
 - [ ] Main screen opens and displays AIRA branding.
 - [ ] Overlay permission flow works.
+- [ ] Android 13+ notification permission is requested when starting AIRA.
 - [ ] AIRA overlay appears, can be dragged, and opens chat on tap.
 - [ ] Overlay compacts outside the app and expands inside it.
 - [ ] Chat accepts Uzbek text and shows AIRA demo responses.
@@ -37,4 +39,4 @@ M1 is the first installable Android prototype, not the finished companion.
 - [ ] Stop button removes the overlay and foreground notification.
 
 ## Current implementation note
-The initial code update has been committed to branch `aira-v1-foundation`. Device testing is still required before calling M1 complete.
+The current implementation is committed to branch `aira-v1-foundation`. Device testing is still required before calling M1 complete.
