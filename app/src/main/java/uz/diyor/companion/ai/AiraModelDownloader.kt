@@ -23,6 +23,8 @@ class AiraModelDownloader(context: Context) {
     private val modelFile = File(context.filesDir, MODEL_FILE_NAME)
     private val partialFile = File(context.filesDir, "$MODEL_FILE_NAME.part")
 
+    fun modelFileIfPresent(): File? = modelFile.takeIf { it.isFile && it.length() > 0L }
+
     fun installedModel(): File? {
         if (!modelFile.isFile || modelFile.length() <= 0L) return null
         return if (sha256(modelFile) == EXPECTED_SHA256) modelFile else null
