@@ -20,6 +20,7 @@ M1 is the first installable Android prototype, not the finished companion.
 
 ## Explicit limitations
 - The Canvas avatar is a 2D placeholder, not a true 3D model.
+- Local chat history is stored on-device in app-private preferences; it is not encrypted separately and is not synced.
 - M1 chat uses simple keyword-based demo responses; it is not an LLM and does not have persistent conversational memory.
 - Voice, real AI inference, 3D rigging/animation, settings, and long-term memory are later milestones.
 - No paid API or cloud service is required for this M1 prototype.
@@ -32,6 +33,7 @@ M1 is the first installable Android prototype, not the finished companion.
 - [ ] AIRA overlay appears, can be dragged, and opens chat on tap.
 - [ ] Overlay compacts outside the app and expands inside it.
 - [ ] Chat accepts Uzbek text and shows AIRA demo responses.
+- [ ] Chat history remains after closing and reopening the app.
 - [ ] Stop button removes the overlay and foreground notification.
 
 ## Current implementation note
