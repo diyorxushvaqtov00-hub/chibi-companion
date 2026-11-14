@@ -121,6 +121,9 @@ class MainActivity : Activity() {
             isFillViewport = true
             addView(root)
         })
+
+        // Check GitHub Releases at most once per 24 hours; no user action is needed.
+        AiraUpdateManager(this).check(force = false)
     }
 
     private fun startCompanion() {
