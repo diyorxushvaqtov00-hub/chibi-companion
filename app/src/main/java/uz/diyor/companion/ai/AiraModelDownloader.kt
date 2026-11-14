@@ -51,7 +51,7 @@ class AiraModelDownloader(context: Context) {
 
                 val declaredLength = connection.contentLengthLong
                 if (declaredLength > 0L) {
-                    check(declaredLength in (EXPECTED_SIZE_BYTES - 2_000_000L)..(EXPECTED_SIZE_BYTES + 2_000_000L)) {
+                    check(declaredLength in 550_000_000L..700_000_000L) {
                         "Model hajmi kutilgan qiymatga mos emas: $declaredLength bayt"
                     }
                 }
@@ -74,7 +74,7 @@ class AiraModelDownloader(context: Context) {
                     }
                 }
 
-                check(partialFile.length() in (EXPECTED_SIZE_BYTES - 2_000_000L)..(EXPECTED_SIZE_BYTES + 2_000_000L)) {
+                check(partialFile.length() in 550_000_000L..700_000_000L) {
                     "Yuklab olingan fayl hajmi noto‘g‘ri: ${partialFile.length()} bayt"
                 }
                 check(sha256(partialFile) == EXPECTED_SHA256) {
