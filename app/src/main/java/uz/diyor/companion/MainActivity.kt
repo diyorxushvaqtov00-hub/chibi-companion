@@ -101,6 +101,8 @@ class MainActivity : Activity() {
     private fun makeButton(label: String, action: () -> Unit) = Button(this).apply {
         text = label
         isAllCaps = false
+        setTextColor(Color.WHITE)
+        backgroundTintList = android.content.res.ColorStateList.valueOf(Color.rgb(91, 65, 145))
         setOnClickListener { action() }
         layoutParams = LinearLayout.LayoutParams(-1, -2).apply {
             setMargins(0, dp(5), 0, dp(5))
