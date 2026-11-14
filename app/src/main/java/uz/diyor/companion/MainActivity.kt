@@ -94,6 +94,16 @@ class MainActivity : Activity() {
             setTextColor(Color.rgb(165, 145, 205))
             setPadding(0, dp(12), 0, dp(8))
         })
+        root.addView(makeButton("AIRA avatarini yashirish") {
+            startService(Intent(this, PetService::class.java).setAction(PetService.ACTION_HIDE))
+        })
+        root.addView(makeButton("AIRA avatarini qayta ko‘rsatish") {
+            if (!Settings.canDrawOverlays(this)) {
+                Toast.makeText(this, "Avval ekran ustida ko‘rinish ruxsatini ber.", Toast.LENGTH_LONG).show()
+            } else {
+                startService(Intent(this, PetService::class.java).setAction(PetService.ACTION_SHOW))
+            }
+        })
         root.addView(makeButton("AIRA ni to‘xtatish") {
             stopService(Intent(this, PetService::class.java))
         })
