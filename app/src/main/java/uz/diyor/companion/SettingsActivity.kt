@@ -11,7 +11,6 @@ import android.widget.Switch
 import android.widget.TextView
 import android.widget.Toast
 import org.json.JSONArray
-import uz.diyor.companion.memory.MemoryStore
 
 class SettingsActivity : Activity() {
     private fun dp(value: Int) = (value * resources.displayMetrics.density).toInt()
