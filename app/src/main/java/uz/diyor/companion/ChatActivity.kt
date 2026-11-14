@@ -11,6 +11,7 @@ import android.speech.RecognitionListener
 import android.speech.RecognizerIntent
 import android.speech.SpeechRecognizer
 import android.speech.tts.TextToSpeech
+import android.speech.tts.UtteranceProgressListener
 import android.view.Gravity
 import android.view.inputmethod.EditorInfo
 import android.widget.Button
@@ -230,6 +231,16 @@ class ChatActivity : Activity() {
             runOnUiThread {
                 if (status == TextToSpeech.SUCCESS) {
                     val result = textToSpeech?.setLanguage(Locale("uz", "UZ"))
+                    textToSpeech?.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
+                        override fun onStart(utteranceId: String?) = Unit
+                        override fun onDone(utteranceId: String?) {
+                            runOnUiThread { setAvatarState(ChibiView.AvatarState.IDLE) }
+                        }
+                        @Deprecated("Deprecated in Java")
+                        override fun onError(utteranceId: String?) {
+                            runOnUiThread { setAvatarState(ChibiView.AvatarState.IDLE) }
+                        }
+                    })
                     ttsReady = result != null &&
                         result != TextToSpeech.LANG_MISSING_DATA &&
                         result != TextToSpeech.LANG_NOT_SUPPORTED
