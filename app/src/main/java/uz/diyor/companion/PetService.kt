@@ -35,6 +35,11 @@ class PetService : Service() {
                 .getBoolean("app_visible", false)
             val shouldCompact = !appVisible
             if (shouldCompact != compactNow) setCompactMode(shouldCompact)
+            val stateName = getSharedPreferences("companion_state", MODE_PRIVATE)
+                .getString("avatar_state", "IDLE") ?: "IDLE"
+            val state = runCatching { ChibiView.AvatarState.valueOf(stateName) }
+                .getOrDefault(ChibiView.AvatarState.IDLE)
+            if (petView?.avatarState != state) petView?.avatarState = state
             handler.postDelayed(this, 500L)
         }
     }
