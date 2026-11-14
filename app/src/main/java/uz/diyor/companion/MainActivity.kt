@@ -82,7 +82,7 @@ class MainActivity : Activity() {
             startActivity(Intent(this, ChatActivity::class.java))
         })
         root.addView(TextView(this).apply {
-            text = "M1 eslatma: suhbat hozircha offline demo. Haqiqiy AI modeli, ovoz va to‘liq 3D model keyingi bosqichlarda ulanadi."
+            text = "AIRA mahalliy AI modelini alohida yuklab ishlata oladi. Model o‘rnatilmagan bo‘lsa, suhbat offline demo rejimida ishlaydi. Ovoz va 3D keyingi bosqichlarda ulanadi."
             textSize = 12f
             gravity = Gravity.CENTER
             setTextColor(Color.rgb(165, 145, 205))
@@ -98,7 +98,7 @@ class MainActivity : Activity() {
             setTextColor(Color.GRAY)
             setPadding(0, dp(24), 0, 0)
         })
-        setContentView(root)
+        setContentView(android.widget.ScrollView(this).apply {\n            isFillViewport = true\n            addView(root)\n        })
     }
 
     private fun startCompanion() {
