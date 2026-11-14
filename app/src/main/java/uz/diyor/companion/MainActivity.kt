@@ -58,7 +58,7 @@ class MainActivity : Activity() {
             setPadding(0, dp(8), 0, dp(8))
         })
         root.addView(TextView(this).apply {
-            text = "Sening virtual hamrohing.\nSovuqqon aql, yaqinlarga mehr.\n\nMahalliy AI • Xotira • Ovoz • Rasm matnini o‘qish."
+            text = "Sening virtual hamrohing.\nSovuqqon aql, yaqinlarga mehr.\n\nMahalliy AI • Xotira • Ovoz • Vision • Suzuvchi avatar."
             textSize = 16f
             gravity = Gravity.CENTER
             setTextColor(Color.rgb(202, 196, 220))
