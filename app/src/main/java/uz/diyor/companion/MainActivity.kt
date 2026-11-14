@@ -75,6 +75,9 @@ class MainActivity : Activity() {
         root.addView(makeButton("2. AIRA yordamchini ishga tushirish") {
             startCompanion()
         })
+        root.addView(makeButton("AIRA xotiralarini boshqarish") {
+            startActivity(Intent(this, MemoryActivity::class.java))
+        })
         root.addView(makeButton("AI modelni yuklab olish (614 MB)") {
             startActivity(Intent(this, ModelDownloadActivity::class.java))
         })
