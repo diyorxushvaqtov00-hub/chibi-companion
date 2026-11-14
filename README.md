@@ -13,6 +13,23 @@ AIRA is an Android-first virtual companion built in Kotlin for the HONOR X9b tar
 - Overlay controls: start, hide, restore and stop the floating companion.
 - Privacy controls: review, share or clear chat history; manage memories separately.
 
+## Automatic app updates
+
+AIRA checks the GitHub latest release on launch (at most once every 24 hours). A user can also check manually from Settings. If a newer release exists, AIRA downloads the APK and opens Android's package installer; Android still requires the user to confirm installation.
+
+To publish an update:
+1. Increase `versionCode` and `versionName` in `app/build.gradle.kts`.
+2. Push a matching tag such as `v1.8` (the tag version must match `versionName`).
+3. The signed-release workflow builds and publishes `aira-release.apk` to GitHub Releases.
+
+One-time GitHub Actions secrets required by the release workflow:
+- `ANDROID_KEYSTORE_BASE64`: base64-encoded persistent JKS keystore.
+- `ANDROID_KEY_ALIAS`: alias inside that keystore.
+- `ANDROID_KEY_PASSWORD`: key password.
+- `ANDROID_STORE_PASSWORD`: keystore password.
+
+**Signing migration warning:** existing debug APKs from GitHub Actions are not signed with a persistent key. The first signed release cannot update those installations in place. Install the first signed release once (this may require uninstalling the debug build); later releases signed with the same key can update normally. Export important chat data before this one-time migration.
+
 ## Build an APK
 1. Open GitHub Actions: https://github.com/diyorxushvaqtov00-hub/chibi-companion/actions
 2. Select the latest successful Build AIRA Android APK run on the aira-m8-settings branch.
