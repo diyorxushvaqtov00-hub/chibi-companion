@@ -2,7 +2,7 @@ name: Build AIRA Android APK
 
 on:
   push:
-    branches: [main, aira-v1-foundation, aira-m2-ai-core, aira-m3-memory, aira-m4-voice, aira-m5-vision, aira-m6-avatar, aira-m7-controls, aira-m8-settings, aira-m9-ai-diagnostics, aira-m10-qwen17b]
+    branches: [main, aira-v1-foundation, aira-m2-ai-core, aira-m3-memory, aira-m4-voice, aira-m5-vision, aira-m6-avatar, aira-m7-controls, aira-m8-settings, aira-m9-ai-diagnostics, aira-m10-qwen17b, aira-m11-auto-update]
     paths-ignore:
       - 'README.md'
       - 'docs/**'
