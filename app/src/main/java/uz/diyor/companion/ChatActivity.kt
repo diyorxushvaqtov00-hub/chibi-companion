@@ -266,7 +266,10 @@ class ChatActivity : Activity() {
         speakReplies = !speakReplies
         getSharedPreferences("aira_voice", MODE_PRIVATE).edit().putBoolean("speak_replies", speakReplies).apply()
         voiceButton.text = if (speakReplies) "Ovoz: ON" else "Ovoz: OFF"
-        if (!speakReplies) textToSpeech?.stop()
+        if (!speakReplies) {
+            textToSpeech?.stop()
+            setAvatarState(ChibiView.AvatarState.IDLE)
+        }
     }
 
     private fun speak(text: String) {
