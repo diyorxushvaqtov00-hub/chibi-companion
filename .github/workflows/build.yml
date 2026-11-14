@@ -1,12 +1,19 @@
-name: Build Android APK
+name: Build AIRA Android APK
 
 on:
   push:
-    branches: [main]
+    branches: [main, aira-v1-foundation, aira-m2-ai-core, aira-m3-memory, aira-m4-voice, aira-m5-vision, aira-m6-avatar, aira-m7-controls, aira-m8-settings, aira-m9-ai-diagnostics, aira-m10-qwen17b, aira-m11-auto-update]
+    paths-ignore:
+      - 'README.md'
+      - 'docs/**'
   workflow_dispatch:
 
 permissions:
   contents: read
+
+concurrency:
+  group: aira-android-build-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build:
@@ -28,7 +35,7 @@ jobs:
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: chibi-companion-apk
+          name: aira-m10-qwen17b-debug-apk
           path: app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
           retention-days: 14
