@@ -154,6 +154,10 @@ class ChatActivity : Activity() {
         initializeTextToSpeech()
 
         restoreHistory()
+        intent.getStringExtra(VisionActivity.EXTRA_OCR_TEXT)?.takeIf { it.isNotBlank() }?.let { extracted ->
+            input.setText("Rasmdan ajratilgan matn:\\n$extracted\\n\\nShuni tahlil qilib ber.")
+            input.setSelection(input.text.length)
+        }
         if (history.isEmpty()) {
             appendMessage("AIRA", "Salom. Men AIRA. Odatda ortiqcha gapirmayman. Lekin seni tinglashga vaqtim bor.")
         }
