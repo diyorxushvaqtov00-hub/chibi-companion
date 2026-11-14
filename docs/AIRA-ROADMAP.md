@@ -1,82 +1,96 @@
-# AIRA — Virtual AI Companion
-## Product and technical roadmap (v1.0)
+# AIRA — Product Roadmap
 
-AIRA is an Android-first virtual companion designed to run on a phone, support Uzbek conversations, remember user-approved facts locally, speak and listen, and optionally appear as a movable floating character.
+## Vision
+An Android virtual companion with a calm, intelligent personality; Uzbek-first conversation; local AI and user-controlled memory; voice interaction; image assistance; and a movable animated avatar.
 
-## Product principles
-- Zero-cost development and free/open-source tools only.
-- Android phone-first workflow; no desktop computer required.
-- Local-first storage; user data stays on device by default.
-- AI provider is replaceable. Never hard-code API keys or promise unlimited free cloud inference.
-- Battery, memory, accessibility, and Android background-execution limits are first-class constraints.
-- Ask permission before storing personal facts or using sensitive device capabilities.
+## Product constraints
+- Target device: HONOR X9b, Android 15, 12 GB RAM.
+- Phone-first development through GitHub and Termux.
+- No paid API is required for the baseline local features.
+- No silent collection of contacts, messages, location, or microphone data.
+- The user controls saved memories, permissions, image selection, and sharing.
+- Be explicit when a feature depends on Google Play Services, network, or device language packs.
 
-## Target device and build environment
-- Initial target: HONOR X9b, Android 15, 12 GB RAM.
-- Development: Termux + GitHub.
-- Build: GitHub Actions with JDK 17 and Gradle; APK artifact for installation.
-- Existing base: Chibi Companion Android project, application ID `uz.diyor.companion`.
+## Implemented milestones
 
-## Architecture
-- **app/ui** — Jetpack Compose screens: onboarding, companion home, chat, settings, memory manager.
-- **app/companion** — character state, mood, interaction events, animation controller.
-- **app/overlay** — WindowManager floating companion and foreground service, enabled only after explicit user permission.
-- **app/ai** — provider-neutral interface, prompt/persona assembly, streaming response state, safe fallback.
-- **app/memory** — Room database, explicit save/forget controls, conversation summaries and user-approved facts.
-- **app/voice** — Android SpeechRecognizer and TextToSpeech adapters, with clear microphone state.
-- **app/data** — settings, permissions, repositories and migrations.
+### M1 — Android companion shell
+- AIRA identity and dark violet UI.
+- Floating draggable 2D Canvas avatar.
+- Foreground service and overlay permission flow.
+- Tap avatar to open chat.
 
-Keep platform APIs behind interfaces so features can be tested independently.
+### M2 — Local AI foundation
+- Provider-neutral AI interface and LiteRT-LM Android runtime.
+- Separate model downloader with size and SHA-256 validation.
+- Qwen3-0.6B model file stored outside the APK.
+- Offline demo fallback clearly labelled.
 
-## Delivery milestones
+### M3 — User-controlled memory
+- App-private SQLite memory store.
+- Explicit add, list, delete-one and clear-all controls.
+- User-approved memories included in local AI prompt context.
 
-### M0 — Foundation
-- Establish a reproducible Android build.
-- Add product identity, app theme, architecture notes and CI workflow.
-- Confirm APK installs and launches on the target phone.
+### M4 — Voice interaction
+- Microphone permission requested on demand.
+- Uzbek SpeechRecognizer language preference.
+- Optional Android TextToSpeech output.
+- Recognition stopped when chat leaves the foreground.
 
-### M1 — Companion shell
-- Compose home screen and chat screen.
-- Character placeholder with idle/talking/listening states.
-- Local settings and first-run permission explanation.
+### M5 — Vision OCR
+- User-selected image input.
+- On-device ML Kit Latin text recognition.
+- Editable OCR output can be sent into AIRA chat.
+- This is OCR, not general visual understanding.
 
-### M2 — Conversation
-- Provider-neutral AI interface.
-- Working chat transport selected from a genuinely free local or free-tier option.
-- Offline fallback that clearly identifies itself as a fallback, not an AI answer.
+### M6 — Avatar expression
+- Idle, listening, thinking and speaking states.
+- State-specific aura, blink and mouth expressions.
+- Chat and voice actions update the floating avatar state.
 
-### M3 — Memory
-- Room persistence for chat history and user-approved memories.
-- Memory review, edit and delete controls.
-- No silent collection of contacts, messages, location, or other sensitive data.
+### M7 — Overlay controls
+- Hide avatar without stopping service.
+- Restore avatar while overlay permission is available.
+- Stop companion service and remove foreground notification.
 
-### M4 — Voice
-- Speech-to-text and text-to-speech.
-- Visible microphone/listening indicator and manual stop control.
-- Uzbek language support where available on the device.
+### M8 — Settings and privacy
+- Persist voice-output preference.
+- Share or clear chat history.
+- Separate chat-history and memory management.
+- Privacy information and direct links to model/memory screens.
 
-### M5 — Floating companion
-- Explicit overlay permission flow.
-- Draggable compact character, tap-to-open chat, hide/close control.
-- Foreground service only while the user has enabled the companion.
-- Test touch boundaries so the character does not block unrelated app controls.
+## Remaining milestones
 
-### M6 — Character polish
-- Replace placeholder with optimized 2D animated character first.
-- Add expressions and states; evaluate 3D only after performance and battery tests.
-- Keep assets licensed for redistribution or created for this project.
+### M9 — Real device validation
+- Install latest APK on HONOR X9b.
+- Download and verify Qwen3-0.6B.
+- Measure model load time, response latency, RAM, temperature and battery.
+- Test Uzbek speech input/output and OCR with real samples.
+- Fix crashes and device-specific issues before production claims.
 
-## Definition of done for v1.0
-- Debug APK builds in GitHub Actions and installs on HONOR X9b.
-- App opens without crashing; chat history persists after restart.
-- User can inspect and delete stored memories.
-- Voice controls clearly show when listening.
-- Floating companion can be moved, hidden, and disabled.
-- No paid API or subscription is required for the baseline build.
-- Known limitations and any free-tier limits are documented.
+### M10 — 3D character
+- Import a redistributable GLB/GLTF model with correct rig and animations.
+- Evaluate Filament/SceneView or another maintained Android renderer.
+- Add idle, blink, talk, listen, happy, sad and thinking animations.
+- Keep a low-power 2D fallback for battery and compatibility.
 
-## Engineering rules
-- Make small commits with one purpose each.
-- Do not replace existing files until their current contents are inspected.
-- Run the Android build after meaningful code changes.
-- Do not commit secrets, tokens, private keys, or personal data.
+### M11 — Genuine multimodal vision
+- Evaluate an on-device vision-language model compatible with the phone's RAM.
+- Keep the existing OCR route as a lightweight fallback.
+- Do not send user images to a server without explicit opt-in.
+
+### M12 — Character behavior and quality
+- User-configurable routines and reminders.
+- Safe, permission-gated actions only.
+- Automated tests for memory, settings, model lifecycle and overlay controls.
+- Accessibility, localization, crash and battery testing.
+
+## Release-ready definition
+- Clean GitHub Actions build.
+- Installs and runs on HONOR X9b.
+- Local model downloaded, hash-verified and successfully answers prompts.
+- Chat history and memories can be inspected and deleted.
+- Voice controls clearly indicate microphone state.
+- OCR works on representative Uzbek Latin images.
+- Overlay can be moved, hidden, restored and stopped.
+- 3D and vision capabilities are only advertised after device testing.
+- Release APK is properly signed and documented.
