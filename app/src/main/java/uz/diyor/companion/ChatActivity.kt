@@ -7,6 +7,8 @@ import android.content.pm.PackageManager
 import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.speech.RecognitionListener
 import android.speech.RecognizerIntent
 import android.speech.SpeechRecognizer
@@ -39,6 +41,11 @@ class ChatActivity : Activity() {
     private lateinit var input: EditText
     private lateinit var micButton: Button
     private lateinit var voiceButton: Button
+    private lateinit var sendButton: Button
+    private lateinit var aiStatus: TextView
+    private val mainHandler = Handler(Looper.getMainLooper())
+    private var requestInProgress = false
+    private var requestId = 0
     private var speechRecognizer: SpeechRecognizer? = null
     private var textToSpeech: TextToSpeech? = null
     private var ttsReady = false
@@ -86,6 +93,7 @@ class ChatActivity : Activity() {
         super.onCreate(savedInstanceState)
         val modelFile = uz.diyor.companion.ai.AiraModelDownloader(this).modelFileIfPresent()
         aiProvider = if (modelFile != null) {
+            aiStatus?.text = "Mahalliy AI modeli tekshirilmoqda va ishga tushmoqda..."
             uz.diyor.companion.ai.LocalLiteRtProvider(this, modelFile)
         } else {
             OfflineDemoProvider()
@@ -115,6 +123,14 @@ class ChatActivity : Activity() {
             setPadding(0, 0, 0, dp(12))
         })
 
+        aiStatus = TextView(this).apply {
+            text = "AI model holati tekshirilmoqda..."
+            textSize = 11f
+            gravity = Gravity.CENTER
+            setTextColor(Color.rgb(175, 155, 215))
+            setPadding(0, 0, 0, dp(8))
+        }
+        root.addView(aiStatus)
         scroll = ScrollView(this).apply { isFillViewport = true }
         messages = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
@@ -149,13 +165,14 @@ class ChatActivity : Activity() {
             setOnClickListener { toggleVoiceOutput() }
         }
         row.addView(voiceButton, LinearLayout.LayoutParams(dp(92), dp(50)))
-        row.addView(Button(this).apply {
+        sendButton = Button(this).apply {
             text = "Yuborish"
             isAllCaps = false
             setTextColor(Color.WHITE)
             backgroundTintList = android.content.res.ColorStateList.valueOf(Color.rgb(111, 75, 190))
             setOnClickListener { sendMessage() }
-        })
+        }
+        row.addView(sendButton)
         root.addView(row)
         setContentView(root)
         speakReplies = getSharedPreferences("aira_voice", MODE_PRIVATE).getBoolean("speak_replies", false)
@@ -180,8 +197,14 @@ class ChatActivity : Activity() {
     private fun sendMessage() {
         val text = input.text.toString().trim()
         if (text.isEmpty()) return
-        appendMessage("Sen", text)
+        if (requestInProgress) return
+        requestInProgress = true
+        val activeRequestId = ++requestId
+        sendButton.isEnabled = false
+        sendButton.text = "Kut..." 
+        aiStatus.text = "AIRA javob tayyorlamoqda..."
         setAvatarState(ChibiView.AvatarState.THINKING)
+        appendMessage("Sen", text)
         input.setText("")
 
         val contextMessages = history.dropLast(1).takeLast(24).map { (who, content) ->
@@ -198,9 +221,26 @@ class ChatActivity : Activity() {
             systemInstruction = AiraPersona.systemInstruction + memoryInstruction
         )
 
+        val timeout = Runnable {
+            if (requestInProgress && requestId == activeRequestId) {
+                requestInProgress = false
+                sendButton.isEnabled = true
+                sendButton.text = "Yuborish"
+                aiStatus.text = "Javob vaqti tugadi. Model yuklanmay qolgan yoki juda sekin ishlayotgan bo‘lishi mumkin."
+                appendMessage("AIRA · diagnostika", "90 soniya ichida javob kelmadi. Modelni qayta yuklashdan oldin xatolikni aniqlash kerak.")
+                setAvatarState(ChibiView.AvatarState.IDLE)
+            }
+        }
+        mainHandler.postDelayed(timeout, 90000L)
         aiProvider.generate(request, object : AiCallback {
             override fun onSuccess(reply: uz.diyor.companion.ai.AiReply) {
                 runOnUiThread {
+                    if (requestId != activeRequestId || !requestInProgress) return@runOnUiThread
+                    mainHandler.removeCallbacks(timeout)
+                    requestInProgress = false
+                    sendButton.isEnabled = true
+                    sendButton.text = "Yuborish"
+                    aiStatus.text = if (reply.isFallback) "Demo rejimi — haqiqiy model ishlamayapti." else "Mahalliy AI faol."
                     val label = if (reply.isFallback) "AIRA · demo" else "AIRA"
                     appendMessage(label, reply.text)
                     if (speakReplies) {
@@ -214,6 +254,12 @@ class ChatActivity : Activity() {
 
             override fun onFailure(failure: AiFailure) {
                 runOnUiThread {
+                    if (requestId != activeRequestId || !requestInProgress) return@runOnUiThread
+                    mainHandler.removeCallbacks(timeout)
+                    requestInProgress = false
+                    sendButton.isEnabled = true
+                    sendButton.text = "Yuborish"
+                    aiStatus.text = "AI xatolik bilan to‘xtadi."
                     val reason = when (failure) {
                         is AiFailure.Unavailable -> failure.reason
                         is AiFailure.InvalidRequest -> failure.reason
