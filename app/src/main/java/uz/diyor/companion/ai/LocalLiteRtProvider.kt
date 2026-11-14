@@ -75,7 +75,7 @@ class LocalLiteRtProvider(
                         }
                     )
                 ).also { conversation = it }
-                val answer = activeConversation.sendMessage(request.userMessage).text
+                val answer = activeConversation.sendMessage(request.userMessage).toString()
                 callback.onSuccess(
                     AiReply(
                         text = answer.ifBlank { "Hozir javob hosil bo‘lmadi. Yana urinib ko‘r." },
