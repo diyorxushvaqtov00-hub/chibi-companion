@@ -157,6 +157,7 @@ class ChatActivity : Activity() {
         })
         root.addView(row)
         setContentView(root)
+        speakReplies = getSharedPreferences("aira_voice", MODE_PRIVATE).getBoolean("speak_replies", false)
         initializeTextToSpeech()
 
         restoreHistory()
@@ -233,6 +234,7 @@ class ChatActivity : Activity() {
                         result != TextToSpeech.LANG_MISSING_DATA &&
                         result != TextToSpeech.LANG_NOT_SUPPORTED
                     voiceButton.isEnabled = ttsReady
+                    if (ttsReady) voiceButton.text = if (speakReplies) "Ovoz: ON" else "Ovoz: OFF"
                     if (!ttsReady) {
                         voiceButton.text = "Ovoz yo‘q"
                     }
@@ -251,6 +253,7 @@ class ChatActivity : Activity() {
             return
         }
         speakReplies = !speakReplies
+        getSharedPreferences("aira_voice", MODE_PRIVATE).edit().putBoolean("speak_replies", speakReplies).apply()
         voiceButton.text = if (speakReplies) "Ovoz: ON" else "Ovoz: OFF"
         if (!speakReplies) textToSpeech?.stop()
     }
