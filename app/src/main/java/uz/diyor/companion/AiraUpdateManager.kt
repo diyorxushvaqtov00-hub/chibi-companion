@@ -69,7 +69,7 @@ class AiraUpdateManager(private val activity: Activity) {
                         break
                     }
                 }
-                if (downloadUrl.isNullOrBlank()) throw IllegalStateException("Release ichida $APK_ASSET yo‘q.")
+                val assetUrl = downloadUrl ?: throw IllegalStateException("Release ichida $APK_ASSET yo‘q.")
 
                 activity.runOnUiThread {
                     AlertDialog.Builder(activity)
@@ -77,7 +77,7 @@ class AiraUpdateManager(private val activity: Activity) {
                         .setMessage("Yangi versiya: $tag\nHajmi: %.1f MB\n\nYangilanishni yuklab olaymi?".format(size / 1_000_000.0))
                         .setNegativeButton("Keyin", null)
                         .setPositiveButton("Yuklab olish") { _, _ ->
-                            downloadAndPrompt(downloadUrl, tag)
+                            downloadAndPrompt(assetUrl, tag)
                         }
                         .show()
                 }
