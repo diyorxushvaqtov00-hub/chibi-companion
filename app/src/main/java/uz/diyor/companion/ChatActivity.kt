@@ -1,9 +1,16 @@
 package uz.diyor.companion
 
+import android.Manifest
 import android.app.Activity
+import android.content.Intent
+import android.content.pm.PackageManager
 import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
+import android.speech.RecognitionListener
+import android.speech.RecognizerIntent
+import android.speech.SpeechRecognizer
+import android.speech.tts.TextToSpeech
 import android.view.Gravity
 import android.view.inputmethod.EditorInfo
 import android.widget.Button
@@ -11,6 +18,8 @@ import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
+import android.widget.Toast
+import java.util.Locale
 import org.json.JSONArray
 import org.json.JSONObject
 import uz.diyor.companion.ai.AiCallback
@@ -27,6 +36,14 @@ class ChatActivity : Activity() {
     private lateinit var messages: LinearLayout
     private lateinit var scroll: ScrollView
     private lateinit var input: EditText
+    private lateinit var micButton: Button
+    private lateinit var voiceButton: Button
+    private var speechRecognizer: SpeechRecognizer? = null
+    private var textToSpeech: TextToSpeech? = null
+    private var ttsReady = false
+    private var speakReplies = false
+    private var listening = false
+    private val requestAudioPermission = 420
     private val history = mutableListOf<Pair<String, String>>()
     private lateinit var aiProvider: AiProvider
     private val prefs by lazy { getSharedPreferences("aira_chat", MODE_PRIVATE) }
@@ -45,6 +62,11 @@ class ChatActivity : Activity() {
         if (aiProvider is AutoCloseable) {
             try { (aiProvider as AutoCloseable).close() } catch (_: Exception) { }
         }
+        speechRecognizer?.destroy()
+        speechRecognizer = null
+        textToSpeech?.stop()
+        textToSpeech?.shutdown()
+        textToSpeech = null
         super.onDestroy()
     }
 
@@ -105,6 +127,18 @@ class ChatActivity : Activity() {
             background = rounded(Color.rgb(35, 30, 49), dp(14).toFloat())
         }
         row.addView(input, LinearLayout.LayoutParams(0, dp(50), 1f))
+        micButton = Button(this).apply {
+            text = "🎙"
+            isAllCaps = false
+            setOnClickListener { requestAudioAndListen() }
+        }
+        row.addView(micButton, LinearLayout.LayoutParams(dp(54), dp(50)))
+        voiceButton = Button(this).apply {
+            text = "Ovoz: OFF"
+            isAllCaps = false
+            setOnClickListener { toggleVoiceOutput() }
+        }
+        row.addView(voiceButton, LinearLayout.LayoutParams(dp(92), dp(50)))
         row.addView(Button(this).apply {
             text = "Yuborish"
             isAllCaps = false
@@ -114,6 +148,7 @@ class ChatActivity : Activity() {
         })
         root.addView(row)
         setContentView(root)
+        initializeTextToSpeech()
 
         restoreHistory()
         if (history.isEmpty()) {
@@ -152,6 +187,7 @@ class ChatActivity : Activity() {
                 runOnUiThread {
                     val label = if (reply.isFallback) "AIRA · demo" else "AIRA"
                     appendMessage(label, reply.text)
+                    if (speakReplies) speak(reply.text)
                 }
             }
 
@@ -166,6 +202,136 @@ class ChatActivity : Activity() {
                 }
             }
         })
+    }
+
+    private fun initializeTextToSpeech() {
+        textToSpeech = TextToSpeech(this) { status ->
+            runOnUiThread {
+                if (status == TextToSpeech.SUCCESS) {
+                    val result = textToSpeech?.setLanguage(Locale("uz", "UZ"))
+                    ttsReady = result != null &&
+                        result != TextToSpeech.LANG_MISSING_DATA &&
+                        result != TextToSpeech.LANG_NOT_SUPPORTED
+                    voiceButton.isEnabled = ttsReady
+                    if (!ttsReady) {
+                        voiceButton.text = "Ovoz yo‘q"
+                    }
+                } else {
+                    ttsReady = false
+                    voiceButton.isEnabled = false
+                    voiceButton.text = "Ovoz yo‘q"
+                }
+            }
+        }
+    }
+
+    private fun toggleVoiceOutput() {
+        if (!ttsReady) {
+            Toast.makeText(this, "Telefonda o‘zbekcha TTS ovozi mavjud emas.", Toast.LENGTH_LONG).show()
+            return
+        }
+        speakReplies = !speakReplies
+        voiceButton.text = if (speakReplies) "Ovoz: ON" else "Ovoz: OFF"
+        if (!speakReplies) textToSpeech?.stop()
+    }
+
+    private fun speak(text: String) {
+        if (ttsReady && speakReplies) {
+            textToSpeech?.speak(text, TextToSpeech.QUEUE_FLUSH, null, "aira-reply")
+        }
+    }
+
+    private fun requestAudioAndListen() {
+        if (!SpeechRecognizer.isRecognitionAvailable(this)) {
+            Toast.makeText(this, "Bu telefonda ovoz tanish xizmati mavjud emas.", Toast.LENGTH_LONG).show()
+            return
+        }
+        if (checkSelfPermission(Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(arrayOf(Manifest.permission.RECORD_AUDIO), requestAudioPermission)
+            return
+        }
+        startListening()
+    }
+
+    private fun startListening() {
+        if (listening) {
+            speechRecognizer?.stopListening()
+            return
+        }
+        val recognizer = speechRecognizer ?: SpeechRecognizer.createSpeechRecognizer(this).also { created ->
+            created.setRecognitionListener(object : RecognitionListener {
+                override fun onReadyForSpeech(params: Bundle?) {
+                    listening = true
+                    micButton.text = "Tingla..."
+                }
+
+                override fun onBeginningOfSpeech() {
+                    listening = true
+                }
+
+                override fun onRmsChanged(rmsdB: Float) = Unit
+                override fun onBufferReceived(buffer: ByteArray?) = Unit
+
+                override fun onEndOfSpeech() {
+                    listening = false
+                    micButton.text = "🎙"
+                }
+
+                override fun onError(error: Int) {
+                    listening = false
+                    micButton.text = "🎙"
+                    if (error != SpeechRecognizer.ERROR_CLIENT) {
+                        Toast.makeText(this@ChatActivity, "Ovoz aniqlanmadi. Yana urinib ko‘r.", Toast.LENGTH_SHORT).show()
+                    }
+                }
+
+                override fun onResults(results: Bundle?) {
+                    listening = false
+                    micButton.text = "🎙"
+                    val spoken = results
+                        ?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
+                        ?.firstOrNull()
+                    if (!spoken.isNullOrBlank()) {
+                        input.setText(spoken)
+                        input.setSelection(input.text.length)
+                    }
+                }
+
+                override fun onPartialResults(partialResults: Bundle?) = Unit
+                override fun onEvent(eventType: Int, params: Bundle?) = Unit
+            })
+        }
+        speechRecognizer = recognizer
+        val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+            putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+            putExtra(RecognizerIntent.EXTRA_LANGUAGE, "uz-UZ")
+            putExtra(RecognizerIntent.EXTRA_LANGUAGE_PREFERENCE, "uz-UZ")
+            putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true)
+        }
+        try {
+            recognizer.startListening(intent)
+            listening = true
+            micButton.text = "Tingla..."
+        } catch (error: Exception) {
+            listening = false
+            micButton.text = "🎙"
+            Toast.makeText(this, error.message ?: "Mikrofonni ishga tushirib bo‘lmadi.", Toast.LENGTH_LONG).show()
+        }
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == requestAudioPermission) {
+            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                startListening()
+            } else {
+                Toast.makeText(this, "Ovozli yozish uchun mikrofon ruxsati kerak.", Toast.LENGTH_LONG).show()
+            }
+        }
     }
 
     private fun appendMessage(who: String, text: String) {
