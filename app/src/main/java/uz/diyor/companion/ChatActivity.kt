@@ -54,6 +54,9 @@ class ChatActivity : Activity() {
     }
 
     override fun onPause() {
+        speechRecognizer?.cancel()
+        listening = false
+        if (::micButton.isInitialized) micButton.text = "🎙"
         getSharedPreferences("companion_state", MODE_PRIVATE).edit().putBoolean("app_visible", false).apply()
         super.onPause()
     }
