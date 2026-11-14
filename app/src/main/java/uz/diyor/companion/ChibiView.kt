@@ -19,7 +19,7 @@ class ChibiView(context: Context) : View(context) {
     private val density = resources.displayMetrics.density
     private fun d(value: Float) = value * density
 
-    var compactMode: Boolean = false
+    enum class AvatarState { IDLE, LISTENING, THINKING, SPEAKING }\n\n    var avatarState: AvatarState = AvatarState.IDLE\n        set(value) { field = value; invalidate() }\n\n    var compactMode: Boolean = false
         set(value) {
             field = value
             requestLayout()
@@ -50,7 +50,7 @@ class ChibiView(context: Context) : View(context) {
         val time = System.currentTimeMillis() / 1000.0
         val idle = sin(time * 1.8).toFloat()
         val hairMove = sin(time * 1.15 + 0.5).toFloat()
-        val blink = (time % 4.7) in 0.0..0.12
+        val blink = (time % if (avatarState == AvatarState.LISTENING) 2.8 else 4.7) in 0.0..0.12
 
         canvas.save()
         canvas.scale(width / d(120f), height / d(146f))
@@ -67,7 +67,7 @@ class ChibiView(context: Context) : View(context) {
         val white = Color.rgb(238, 238, 247)
 
         // Soft purple aura, clipped to the avatar bounds.
-        setPaint(Color.argb(35, 145, 92, 255))
+        val auraAlpha = when (avatarState) {\n            AvatarState.IDLE -> 35\n            AvatarState.LISTENING -> (75 + 25 * sin(time * 5.0)).toInt()\n            AvatarState.THINKING -> (55 + 20 * sin(time * 3.0)).toInt()\n            AvatarState.SPEAKING -> 85\n        }\n        setPaint(Color.argb(auraAlpha, 145, 92, 255))
         canvas.drawOval(RectF(cx-d(39f), d(8f), cx+d(39f), d(140f)), paint)
 
         // Long hair flowing behind the shoulders.
@@ -145,7 +145,7 @@ class ChibiView(context: Context) : View(context) {
         setPaint(silverBright, Paint.Style.STROKE, 1.6f)
         canvas.drawArc(RectF(cx-d(19f), d(17f), cx+d(18f), d(48f)), 205f, 112f, false, paint)
 
-        // Violet eyes with dark lashes.
+        // State aura indicator.\n        if (avatarState == AvatarState.THINKING) {\n            setPaint(violet, Paint.Style.STROKE, 1.8f)\n            canvas.drawArc(RectF(cx-d(34f), d(4f), cx+d(34f), d(72f)), -65f, 95f, false, paint)\n            setPaint(silverBright)\n            canvas.drawCircle(cx+d(27f), d(18f), d(2.2f), paint)\n        }\n\n        // Violet eyes with dark lashes.
         if (blink) {
             setPaint(black, Paint.Style.STROKE, 2f)
             canvas.drawArc(RectF(cx-d(17f), d(44f), cx-d(4f), d(57f)), 15f, 150f, false, paint)
@@ -173,7 +173,7 @@ class ChibiView(context: Context) : View(context) {
         canvas.drawOval(RectF(cx-d(20f), d(58f), cx-d(13f), d(61f)), paint)
         canvas.drawOval(RectF(cx+d(13f), d(58f), cx+d(20f), d(61f)), paint)
         setPaint(violetDark, Paint.Style.STROKE, 1.2f)
-        canvas.drawArc(RectF(cx-d(4f), d(58f), cx+d(4f), d(63f)), 15f, 150f, false, paint)
+        when (avatarState) {\n            AvatarState.SPEAKING -> canvas.drawOval(RectF(cx-d(3f), d(58f), cx+d(3f), d(65f)), paint)\n            AvatarState.LISTENING -> canvas.drawArc(RectF(cx-d(5f), d(58f), cx+d(5f), d(64f)), 10f, 160f, false, paint)\n            AvatarState.THINKING -> canvas.drawLine(cx-d(3f), d(61f), cx+d(3f), d(61f), paint)\n            AvatarState.IDLE -> canvas.drawArc(RectF(cx-d(4f), d(58f), cx+d(4f), d(63f)), 15f, 150f, false, paint)\n        }
 
         // Small violet hair ornaments.
         setPaint(violet)
