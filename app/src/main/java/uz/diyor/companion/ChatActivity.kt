@@ -27,7 +27,7 @@ class ChatActivity : Activity() {
     private lateinit var scroll: ScrollView
     private lateinit var input: EditText
     private val history = mutableListOf<Pair<String, String>>()
-    private val aiProvider: AiProvider = OfflineDemoProvider()
+    private lateinit var aiProvider: AiProvider
     private val prefs by lazy { getSharedPreferences("aira_chat", MODE_PRIVATE) }
 
     override fun onResume() {
@@ -40,10 +40,23 @@ class ChatActivity : Activity() {
         super.onPause()
     }
 
+    override fun onDestroy() {
+        if (aiProvider is AutoCloseable) {
+            try { (aiProvider as AutoCloseable).close() } catch (_: Exception) { }
+        }
+        super.onDestroy()
+    }
+
     private fun dp(v: Int) = (v * resources.displayMetrics.density).toInt()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        val modelFile = uz.diyor.companion.ai.AiraModelDownloader(this).modelFileIfPresent()
+        aiProvider = if (modelFile != null) {
+            uz.diyor.companion.ai.LocalLiteRtProvider(this, modelFile)
+        } else {
+            OfflineDemoProvider()
+        }
         window.statusBarColor = Color.rgb(12, 10, 22)
         window.navigationBarColor = Color.rgb(12, 10, 22)
 
