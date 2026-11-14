@@ -93,7 +93,6 @@ class ChatActivity : Activity() {
         super.onCreate(savedInstanceState)
         val modelFile = uz.diyor.companion.ai.AiraModelDownloader(this).modelFileIfPresent()
         aiProvider = if (modelFile != null) {
-            aiStatus?.text = "Mahalliy AI modeli tekshirilmoqda va ishga tushmoqda..."
             uz.diyor.companion.ai.LocalLiteRtProvider(this, modelFile)
         } else {
             OfflineDemoProvider()
