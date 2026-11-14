@@ -65,7 +65,7 @@ class LocalLiteRtProvider(
                     ?: throw IllegalStateException("AI modeli hali tayyor emas")
                 val activeConversation = conversation ?: activeEngine.createConversation(
                     ConversationConfig(
-                        systemInstruction = Contents.of(AiraPersona.systemInstruction),
+                        systemInstruction = Contents.of(request.systemInstruction),
                         initialMessages = request.messages.mapNotNull { message ->
                             when (message.role) {
                                 AiRole.USER -> Message.user(message.content)
