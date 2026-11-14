@@ -75,6 +75,9 @@ class MainActivity : Activity() {
         root.addView(makeButton("2. AIRA yordamchini ishga tushirish") {
             startCompanion()
         })
+        root.addView(makeButton("AI modelni yuklab olish (614 MB)") {
+            startActivity(Intent(this, ModelDownloadActivity::class.java))
+        })
         root.addView(makeButton("AIRA bilan suhbatlashish") {
             startActivity(Intent(this, ChatActivity::class.java))
         })
