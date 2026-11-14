@@ -21,6 +21,7 @@ import uz.diyor.companion.ai.AiRequest
 import uz.diyor.companion.ai.AiRole
 import uz.diyor.companion.ai.AiraPersona
 import uz.diyor.companion.ai.OfflineDemoProvider
+import uz.diyor.companion.memory.MemoryStore
 
 class ChatActivity : Activity() {
     private lateinit var messages: LinearLayout
@@ -138,10 +139,12 @@ class ChatActivity : Activity() {
                 content = content
             )
         }
+        val savedMemories = MemoryStore(applicationContext).use { it.promptContext() }
+        val memoryInstruction = if (savedMemories.isBlank()) "" else "\n\nFoydalanuvchi tomonidan ochiq saqlangan xotiralar:\n$savedMemories\nUlarni faqat tegishli bo‘lsa ishlat; ularga yangi fakt qo‘shib to‘qima."
         val request = AiRequest(
             messages = contextMessages,
             userMessage = text,
-            systemInstruction = AiraPersona.systemInstruction
+            systemInstruction = AiraPersona.systemInstruction + memoryInstruction
         )
 
         aiProvider.generate(request, object : AiCallback {
