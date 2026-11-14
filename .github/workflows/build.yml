@@ -2,7 +2,7 @@ name: Build AIRA Android APK
 
 on:
   push:
-    branches: [main, aira-v1-foundation, aira-m2-ai-core, aira-m3-memory, aira-m4-voice, aira-m5-vision]
+    branches: [main, aira-v1-foundation, aira-m2-ai-core, aira-m3-memory, aira-m4-voice, aira-m5-vision, aira-m6-avatar]
   workflow_dispatch:
 
 permissions:
@@ -32,7 +32,7 @@ jobs:
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: aira-m5-debug-apk
+          name: aira-m6-debug-apk
           path: app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
           retention-days: 14
