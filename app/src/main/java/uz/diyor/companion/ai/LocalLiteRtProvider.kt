@@ -7,6 +7,7 @@ import com.google.ai.edge.litertlm.Conversation
 import com.google.ai.edge.litertlm.ConversationConfig
 import com.google.ai.edge.litertlm.Engine
 import com.google.ai.edge.litertlm.EngineConfig
+import com.google.ai.edge.litertlm.Message
 import java.io.File
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
@@ -42,11 +43,6 @@ class LocalLiteRtProvider(
                 )
                 candidate.initialize()
                 engine = candidate
-                conversation = candidate.createConversation(
-                    ConversationConfig(
-                        systemInstruction = Contents.of(AiraPersona.systemInstruction)
-                    )
-                )
             } catch (error: Exception) {
                 initializationError = error.message ?: "Mahalliy AI modelini ishga tushirib bo‘lmadi"
             }
@@ -65,8 +61,20 @@ class LocalLiteRtProvider(
                     callback.onFailure(AiFailure.Unavailable(error))
                     return@execute
                 }
-                val activeConversation = conversation
+                val activeEngine = engine
                     ?: throw IllegalStateException("AI modeli hali tayyor emas")
+                val activeConversation = conversation ?: activeEngine.createConversation(
+                    ConversationConfig(
+                        systemInstruction = Contents.of(AiraPersona.systemInstruction),
+                        initialMessages = request.messages.mapNotNull { message ->
+                            when (message.role) {
+                                AiRole.USER -> Message.user(message.content)
+                                AiRole.ASSISTANT -> Message.model(message.content)
+                                AiRole.SYSTEM -> null
+                            }
+                        }
+                    )
+                ).also { conversation = it }
                 val answer = activeConversation.sendMessage(request.userMessage).text
                 callback.onSuccess(
                     AiReply(
