@@ -32,12 +32,14 @@ class LocalLiteRtProvider(
     init {
         executor.execute {
             try {
-                require(modelFile.isFile && modelFile.length() in 550_000_000L..700_000_000L) {
-                    "AI modeli topilmadi yoki hajmi noto‘g‘ri. Modelni qayta yuklab oling."
+                val profile = AiraModelDownloader(appContext).profileFor(modelFile)
+                    ?: throw IllegalArgumentException("Noma’lum model fayli: ${modelFile.name}")
+                require(modelFile.isFile && modelFile.length() in profile.minBytes..profile.maxBytes) {
+                    "AI modeli hajmi noto‘g‘ri. ${profile.displayName} modelini qayta yuklab oling."
                 }
                 val actualHash = sha256(modelFile)
-                require(actualHash == AiraModelDownloader.EXPECTED_SHA256) {
-                    "Model SHA-256 tekshiruvidan o‘tmadi. Model fayli buzilgan; uni qayta yuklab oling."
+                require(actualHash == profile.sha256) {
+                    "${profile.displayName} SHA-256 tekshiruvidan o‘tmadi. Faylni qayta yuklab oling."
                 }
                 val candidate = Engine(
                     EngineConfig(
