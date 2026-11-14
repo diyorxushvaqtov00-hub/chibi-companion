@@ -44,9 +44,12 @@ jobs:
           ANDROID_STORE_PASSWORD: ${{ secrets.ANDROID_STORE_PASSWORD }}
         run: gradle assembleRelease --no-daemon
 
+      - name: Prepare stable APK asset name
+        run: cp app/build/outputs/apk/release/app-release.apk app/build/outputs/apk/release/aira-release.apk
+
       - name: Publish GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           name: AIRA ${{ github.ref_name }}
           generate_release_notes: true
-          files: app/build/outputs/apk/release/app-release.apk
+          files: app/build/outputs/apk/release/aira-release.apk
