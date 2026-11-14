@@ -75,6 +75,9 @@ class MainActivity : Activity() {
         root.addView(makeButton("2. AIRA yordamchini ishga tushirish") {
             startCompanion()
         })
+        root.addView(makeButton("AIRA sozlamalari va maxfiylik") {
+            startActivity(Intent(this, SettingsActivity::class.java))
+        })
         root.addView(makeButton("Rasmni AIRA bilan o‘qish") {
             startActivity(Intent(this, VisionActivity::class.java))
         })
