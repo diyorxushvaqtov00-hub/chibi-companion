@@ -1,7 +1,9 @@
 package uz.diyor.companion
 
+import android.Manifest
 import android.app.Activity
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -14,90 +16,162 @@ import android.widget.TextView
 import android.widget.Toast
 
 class MainActivity : Activity() {
-    override fun onResume() { super.onResume(); getSharedPreferences("companion_state", MODE_PRIVATE).edit().putBoolean("app_visible", true).apply() }
-    override fun onPause() { getSharedPreferences("companion_state", MODE_PRIVATE).edit().putBoolean("app_visible", false).apply(); super.onPause() }
+    companion object {
+        private const val REQUEST_NOTIFICATIONS = 410
+    }
+
+    override fun onResume() {
+        super.onResume()
+        getSharedPreferences("companion_state", MODE_PRIVATE).edit().putBoolean("app_visible", true).apply()
+    }
+
+    override fun onPause() {
+        getSharedPreferences("companion_state", MODE_PRIVATE).edit().putBoolean("app_visible", false).apply()
+        super.onPause()
+    }
 
     private fun dp(v: Int) = (v * resources.displayMetrics.density).toInt()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        window.statusBarColor = Color.rgb(20, 8, 20)
-        window.navigationBarColor = Color.rgb(20, 8, 20)
+        window.statusBarColor = Color.rgb(12, 10, 22)
+        window.navigationBarColor = Color.rgb(12, 10, 22)
 
         val root = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             gravity = Gravity.CENTER
             setPadding(dp(24), dp(28), dp(24), dp(28))
-            setBackgroundColor(Color.rgb(20, 8, 20))
+            setBackgroundColor(Color.rgb(12, 10, 22))
         }
         root.addView(TextView(this).apply {
-            text = "👑"
-            textSize = 48f
+            text = "✦"
+            textSize = 54f
             gravity = Gravity.CENTER
+            setTextColor(Color.rgb(190, 155, 255))
         })
         root.addView(TextView(this).apply {
-            text = "CHIBI COMPANION"
-            textSize = 24f
+            text = "A I R A"
+            textSize = 30f
+            letterSpacing = 0.28f
             gravity = Gravity.CENTER
             setTextColor(Color.WHITE)
             setPadding(0, dp(8), 0, dp(8))
         })
         root.addView(TextView(this).apply {
-            text = "Malika endi telefon ekraningda hamrohing bo‘lishga tayyor.\n\nEkran ustida ko‘rinishi uchun maxsus ruxsat kerak."
+            text = "Sening virtual hamrohing.\nSovuqqon aql, yaqinlarga mehr.\n\nMahalliy AI • Xotira • Ovoz • Vision • Suzuvchi avatar."
             textSize = 16f
             gravity = Gravity.CENTER
-            setTextColor(Color.LTGRAY)
+            setTextColor(Color.rgb(202, 196, 220))
             setPadding(0, dp(8), 0, dp(24))
         })
 
         root.addView(makeButton("1. Ekran ustida ko‘rinishga ruxsat berish") {
             if (!Settings.canDrawOverlays(this)) {
-                val intent = Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
-                    Uri.parse("package:$packageName"))
-                startActivity(intent)
+                startActivity(Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:$packageName")))
             } else {
                 Toast.makeText(this, "Ruxsat allaqachon berilgan", Toast.LENGTH_SHORT).show()
             }
         })
-        root.addView(makeButton("2. Malika yordamchini ishga tushirish") {
-            if (!Settings.canDrawOverlays(this)) {
-                Toast.makeText(this, "Avval ekran ustida ko‘rinish ruxsatini bering", Toast.LENGTH_LONG).show()
-            } else {
-                val intent = Intent(this, PetService::class.java)
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) startForegroundService(intent)
-                else startService(intent)
-                Toast.makeText(this, "Malika ishga tushdi!", Toast.LENGTH_SHORT).show()
-            }
+        root.addView(makeButton("2. AIRA yordamchini ishga tushirish") {
+            startCompanion()
         })
-        root.addView(makeButton("Malika bilan suhbatlashish") {
+        root.addView(makeButton("AIRA sozlamalari va maxfiylik") {
+            startActivity(Intent(this, SettingsActivity::class.java))
+        })
+        root.addView(makeButton("Rasmni AIRA bilan o‘qish") {
+            startActivity(Intent(this, VisionActivity::class.java))
+        })
+        root.addView(makeButton("AIRA xotiralarini boshqarish") {
+            startActivity(Intent(this, MemoryActivity::class.java))
+        })
+        root.addView(makeButton("AI modelni yuklab olish (614 MB)") {
+            startActivity(Intent(this, ModelDownloadActivity::class.java))
+        })
+        root.addView(makeButton("AIRA bilan suhbatlashish") {
             startActivity(Intent(this, ChatActivity::class.java))
         })
         root.addView(TextView(this).apply {
-            text = "Suhbat hozircha offline demo: javoblar oldindan belgilangan. Haqiqiy AI uchun keyin xavfsiz AI ulanishi qo‘shiladi."
+            text = "AIRA mahalliy AI modelini alohida yuklab ishlata oladi. Model o‘rnatilmagan bo‘lsa, suhbat offline demo rejimida ishlaydi. Ovoz ishlaydi. Rasm matnini telefonda ajratish ham mavjud. 3D keyingi bosqichda."
             textSize = 12f
             gravity = Gravity.CENTER
-            setTextColor(Color.rgb(210, 150, 190))
-            setPadding(0, dp(8), 0, dp(8))
+            setTextColor(Color.rgb(165, 145, 205))
+            setPadding(0, dp(12), 0, dp(8))
         })
-        root.addView(makeButton("Yordamchini to‘xtatish") {
+        root.addView(makeButton("AIRA avatarini yashirish") {
+            startService(Intent(this, PetService::class.java).setAction(PetService.ACTION_HIDE))
+        })
+        root.addView(makeButton("AIRA avatarini qayta ko‘rsatish") {
+            if (!Settings.canDrawOverlays(this)) {
+                Toast.makeText(this, "Avval ekran ustida ko‘rinish ruxsatini ber.", Toast.LENGTH_LONG).show()
+            } else {
+                startService(Intent(this, PetService::class.java).setAction(PetService.ACTION_SHOW))
+            }
+        })
+        root.addView(makeButton("AIRA ni to‘xtatish") {
             stopService(Intent(this, PetService::class.java))
         })
         root.addView(TextView(this).apply {
-            text = "Maslahat: yordamchini barmog‘ing bilan sudrab joyini o‘zgartir. Ustiga bosib salomlash."
+            text = "Ekrandagi AIRA ni sudrab joyini o‘zgartir. Unga tegsang, suhbat ochiladi."
             textSize = 13f
             gravity = Gravity.CENTER
             setTextColor(Color.GRAY)
             setPadding(0, dp(24), 0, 0)
         })
-        setContentView(root)
+        setContentView(android.widget.ScrollView(this).apply {
+            isFillViewport = true
+            addView(root)
+        })
+    }
+
+    private fun startCompanion() {
+        if (!Settings.canDrawOverlays(this)) {
+            Toast.makeText(this, "Avval ekran ustida ko‘rinish ruxsatini bering", Toast.LENGTH_LONG).show()
+            return
+        }
+
+        if (Build.VERSION.SDK_INT >= 33 &&
+            checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
+        ) {
+            requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS), REQUEST_NOTIFICATIONS)
+            return
+        }
+        launchCompanionService()
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == REQUEST_NOTIFICATIONS) {
+            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                launchCompanionService()
+            } else {
+                Toast.makeText(
+                    this,
+                    "Bildirishnoma ruxsati berilmadi. AIRA ishga tushadi, lekin bildirishnoma ko‘rinishi cheklanishi mumkin.",
+                    Toast.LENGTH_LONG
+                ).show()
+                launchCompanionService()
+            }
+        }
+    }
+
+    private fun launchCompanionService() {
+        val intent = Intent(this, PetService::class.java)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) startForegroundService(intent) else startService(intent)
+        Toast.makeText(this, "AIRA ishga tushdi", Toast.LENGTH_SHORT).show()
     }
 
     private fun makeButton(label: String, action: () -> Unit) = Button(this).apply {
         text = label
         isAllCaps = false
+        setTextColor(Color.WHITE)
+        backgroundTintList = android.content.res.ColorStateList.valueOf(Color.rgb(91, 65, 145))
         setOnClickListener { action() }
-        val p = LinearLayout.LayoutParams(-1, -2)
-        p.setMargins(0, dp(5), 0, dp(5))
-        layoutParams = p
+        layoutParams = LinearLayout.LayoutParams(-1, -2).apply {
+            setMargins(0, dp(5), 0, dp(5))
+        }
     }
 }
