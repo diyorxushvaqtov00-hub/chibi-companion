@@ -45,6 +45,12 @@ class SettingsActivity : Activity() {
         root.addView(voiceSwitch, LinearLayout.LayoutParams(-1, -2).apply {
             bottomMargin = dp(18)
         })
+        root.addView(makeButton("Yangilanishlarni tekshirish") {
+            AiraUpdateManager(this).check(force = true)
+        })
+        root.addView(makeButton("Yuklangan yangilanishni o‘rnatish") {
+            AiraUpdateManager(this).installStagedIfAllowed()
+        })
         root.addView(makeButton("Suhbat tarixini ulashish") { shareChat() })
         root.addView(makeButton("Suhbat tarixini o‘chirish") { confirmClearChat() })
         root.addView(makeButton("AIRA xotiralarini boshqarish") {
@@ -54,13 +60,13 @@ class SettingsActivity : Activity() {
             startActivity(android.content.Intent(this, ModelDownloadActivity::class.java))
         })
         root.addView(TextView(this).apply {
-            text = "Maxfiylik: chat tarixi va qo‘lda saqlangan xotiralar ilovaning shaxsiy xotirasida saqlanadi. OCR tanlangan rasmdagi matnni qurilmaning o‘zida ajratadi. Mikrofon faqat tugma bosilganda ishlatiladi."
+            text = "Yangilanishlar GitHub Releases orqali tekshiriladi. O‘rnatishdan oldin Android ruxsati so‘raladi. Chat va xotiralar ilovaning shaxsiy xotirasida qoladi."
             textSize = 13f
             setTextColor(Color.rgb(175, 165, 195))
             setPadding(0, dp(22), 0, dp(12))
         })
         root.addView(TextView(this).apply {
-            text = "AIRA 1.7 • Android • Local-first"
+            text = "AIRA 1.8 • Android • Local-first"
             textSize = 11f
             gravity = Gravity.CENTER
             setTextColor(Color.GRAY)
