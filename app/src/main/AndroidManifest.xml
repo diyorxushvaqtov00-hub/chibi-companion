@@ -10,6 +10,7 @@
         android:label="AIRA"
         android:supportsRtl="true"
         android:theme="@android:style/Theme.Material.NoActionBar">
+        <activity android:name=".MemoryActivity" android:exported="false" />
         <activity android:name=".ModelDownloadActivity" android:exported="false" />
         <activity
             android:name=".ChatActivity"
