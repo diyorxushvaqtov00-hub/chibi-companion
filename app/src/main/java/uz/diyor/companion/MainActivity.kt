@@ -14,76 +14,82 @@ import android.widget.TextView
 import android.widget.Toast
 
 class MainActivity : Activity() {
-    override fun onResume() { super.onResume(); getSharedPreferences("companion_state", MODE_PRIVATE).edit().putBoolean("app_visible", true).apply() }
-    override fun onPause() { getSharedPreferences("companion_state", MODE_PRIVATE).edit().putBoolean("app_visible", false).apply(); super.onPause() }
+    override fun onResume() {
+        super.onResume()
+        getSharedPreferences("companion_state", MODE_PRIVATE).edit().putBoolean("app_visible", true).apply()
+    }
+
+    override fun onPause() {
+        getSharedPreferences("companion_state", MODE_PRIVATE).edit().putBoolean("app_visible", false).apply()
+        super.onPause()
+    }
 
     private fun dp(v: Int) = (v * resources.displayMetrics.density).toInt()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        window.statusBarColor = Color.rgb(20, 8, 20)
-        window.navigationBarColor = Color.rgb(20, 8, 20)
+        window.statusBarColor = Color.rgb(12, 10, 22)
+        window.navigationBarColor = Color.rgb(12, 10, 22)
 
         val root = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             gravity = Gravity.CENTER
             setPadding(dp(24), dp(28), dp(24), dp(28))
-            setBackgroundColor(Color.rgb(20, 8, 20))
+            setBackgroundColor(Color.rgb(12, 10, 22))
         }
         root.addView(TextView(this).apply {
-            text = "👑"
-            textSize = 48f
+            text = "✦"
+            textSize = 54f
             gravity = Gravity.CENTER
+            setTextColor(Color.rgb(190, 155, 255))
         })
         root.addView(TextView(this).apply {
-            text = "CHIBI COMPANION"
-            textSize = 24f
+            text = "A I R A"
+            textSize = 30f
+            letterSpacing = 0.28f
             gravity = Gravity.CENTER
             setTextColor(Color.WHITE)
             setPadding(0, dp(8), 0, dp(8))
         })
         root.addView(TextView(this).apply {
-            text = "Malika endi telefon ekraningda hamrohing bo‘lishga tayyor.\n\nEkran ustida ko‘rinishi uchun maxsus ruxsat kerak."
+            text = "Sening virtual hamrohing.\nSovuqqon aql, yaqinlarga mehr.\n\nM1 — birinchi ishlaydigan prototip."
             textSize = 16f
             gravity = Gravity.CENTER
-            setTextColor(Color.LTGRAY)
+            setTextColor(Color.rgb(202, 196, 220))
             setPadding(0, dp(8), 0, dp(24))
         })
 
         root.addView(makeButton("1. Ekran ustida ko‘rinishga ruxsat berish") {
             if (!Settings.canDrawOverlays(this)) {
-                val intent = Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
-                    Uri.parse("package:$packageName"))
-                startActivity(intent)
+                startActivity(Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:$packageName")))
             } else {
                 Toast.makeText(this, "Ruxsat allaqachon berilgan", Toast.LENGTH_SHORT).show()
             }
         })
-        root.addView(makeButton("2. Malika yordamchini ishga tushirish") {
+        root.addView(makeButton("2. AIRA yordamchini ishga tushirish") {
             if (!Settings.canDrawOverlays(this)) {
                 Toast.makeText(this, "Avval ekran ustida ko‘rinish ruxsatini bering", Toast.LENGTH_LONG).show()
             } else {
                 val intent = Intent(this, PetService::class.java)
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) startForegroundService(intent)
-                else startService(intent)
-                Toast.makeText(this, "Malika ishga tushdi!", Toast.LENGTH_SHORT).show()
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) startForegroundService(intent) else startService(intent)
+                Toast.makeText(this, "AIRA ishga tushdi", Toast.LENGTH_SHORT).show()
             }
         })
-        root.addView(makeButton("Malika bilan suhbatlashish") {
+        root.addView(makeButton("AIRA bilan suhbatlashish") {
             startActivity(Intent(this, ChatActivity::class.java))
         })
         root.addView(TextView(this).apply {
-            text = "Suhbat hozircha offline demo: javoblar oldindan belgilangan. Haqiqiy AI uchun keyin xavfsiz AI ulanishi qo‘shiladi."
+            text = "M1 eslatma: suhbat hozircha offline demo. Haqiqiy AI modeli, ovoz va to‘liq 3D model keyingi bosqichlarda ulanadi."
             textSize = 12f
             gravity = Gravity.CENTER
-            setTextColor(Color.rgb(210, 150, 190))
-            setPadding(0, dp(8), 0, dp(8))
+            setTextColor(Color.rgb(165, 145, 205))
+            setPadding(0, dp(12), 0, dp(8))
         })
-        root.addView(makeButton("Yordamchini to‘xtatish") {
+        root.addView(makeButton("AIRA ni to‘xtatish") {
             stopService(Intent(this, PetService::class.java))
         })
         root.addView(TextView(this).apply {
-            text = "Maslahat: yordamchini barmog‘ing bilan sudrab joyini o‘zgartir. Ustiga bosib salomlash."
+            text = "Ekrandagi AIRA ni sudrab joyini o‘zgartir. Unga tegsang, suhbat ochiladi."
             textSize = 13f
             gravity = Gravity.CENTER
             setTextColor(Color.GRAY)
@@ -96,8 +102,8 @@ class MainActivity : Activity() {
         text = label
         isAllCaps = false
         setOnClickListener { action() }
-        val p = LinearLayout.LayoutParams(-1, -2)
-        p.setMargins(0, dp(5), 0, dp(5))
-        layoutParams = p
+        layoutParams = LinearLayout.LayoutParams(-1, -2).apply {
+            setMargins(0, dp(5), 0, dp(5))
+        }
     }
 }
