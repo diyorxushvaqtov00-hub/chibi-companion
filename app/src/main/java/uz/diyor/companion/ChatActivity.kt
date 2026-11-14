@@ -2,6 +2,7 @@ package uz.diyor.companion
 
 import android.app.Activity
 import android.graphics.Color
+import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
 import android.view.Gravity
 import android.view.inputmethod.EditorInfo
@@ -10,8 +11,16 @@ import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
+import org.json.JSONArray
+import org.json.JSONObject
 
 class ChatActivity : Activity() {
+    private lateinit var messages: LinearLayout
+    private lateinit var scroll: ScrollView
+    private lateinit var input: EditText
+    private val history = mutableListOf<Pair<String, String>>()
+    private val prefs by lazy { getSharedPreferences("aira_chat", MODE_PRIVATE) }
+
     override fun onResume() {
         super.onResume()
         getSharedPreferences("companion_state", MODE_PRIVATE).edit().putBoolean("app_visible", true).apply()
@@ -22,8 +31,6 @@ class ChatActivity : Activity() {
         super.onPause()
     }
 
-    private lateinit var messages: LinearLayout
-    private lateinit var input: EditText
     private fun dp(v: Int) = (v * resources.displayMetrics.density).toInt()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -33,7 +40,7 @@ class ChatActivity : Activity() {
 
         val root = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            setPadding(dp(16), dp(16), dp(16), dp(12))
+            setPadding(dp(16), dp(12), dp(16), dp(12))
             setBackgroundColor(Color.rgb(12, 10, 22))
         }
         root.addView(TextView(this).apply {
@@ -42,20 +49,21 @@ class ChatActivity : Activity() {
             letterSpacing = 0.12f
             setTextColor(Color.rgb(205, 185, 255))
             gravity = Gravity.CENTER
-            setPadding(0, dp(8), 0, dp(12))
+            setPadding(0, dp(8), 0, dp(8))
         })
         root.addView(TextView(this).apply {
-            text = "M1 • OFFLINE DEMO"
+            text = "Sovuqqon aql • Yaqinlarga mehr"
             textSize = 11f
-            letterSpacing = 0.16f
+            letterSpacing = 0.08f
             setTextColor(Color.rgb(150, 140, 175))
             gravity = Gravity.CENTER
-            setPadding(0, 0, 0, dp(10))
+            setPadding(0, 0, 0, dp(12))
         })
-        val scroll = ScrollView(this)
+
+        scroll = ScrollView(this).apply { isFillViewport = true }
         messages = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            setPadding(dp(4), dp(4), dp(4), dp(4))
+            setPadding(dp(4), dp(4), dp(4), dp(8))
         }
         scroll.addView(messages)
         root.addView(scroll, LinearLayout.LayoutParams(-1, 0, 1f))
@@ -66,22 +74,28 @@ class ChatActivity : Activity() {
         }
         input = EditText(this).apply {
             hint = "AIRA ga yoz..."
-            setHintTextColor(Color.GRAY)
+            setHintTextColor(Color.rgb(130, 120, 150))
             setTextColor(Color.WHITE)
             setSingleLine(true)
             imeOptions = EditorInfo.IME_ACTION_SEND
             setPadding(dp(12), 0, dp(12), 0)
+            background = rounded(Color.rgb(35, 30, 49), dp(14).toFloat())
         }
-        row.addView(input, LinearLayout.LayoutParams(0, dp(52), 1f))
+        row.addView(input, LinearLayout.LayoutParams(0, dp(50), 1f))
         row.addView(Button(this).apply {
             text = "Yuborish"
             isAllCaps = false
+            setTextColor(Color.WHITE)
+            backgroundTintList = android.content.res.ColorStateList.valueOf(Color.rgb(111, 75, 190))
             setOnClickListener { sendMessage() }
         })
         root.addView(row)
         setContentView(root)
 
-        addMessage("AIRA", "Salom. Men AIRA. Odatda ortiqcha gapirmayman. Lekin seni tinglashga vaqtim bor.")
+        restoreHistory()
+        if (history.isEmpty()) {
+            appendMessage("AIRA", "Salom. Men AIRA. Odatda ortiqcha gapirmayman. Lekin seni tinglashga vaqtim bor.")
+        }
         input.setOnEditorActionListener { _, action, _ ->
             if (action == EditorInfo.IME_ACTION_SEND) {
                 sendMessage()
@@ -93,12 +107,11 @@ class ChatActivity : Activity() {
     private fun sendMessage() {
         val text = input.text.toString().trim()
         if (text.isEmpty()) return
-        addMessage("Sen", text)
+        appendMessage("Sen", text)
         input.setText("")
-        addMessage("AIRA", makeReply(text))
+        appendMessage("AIRA", makeReply(text))
     }
 
-    // M1 placeholder persona logic. This is deliberately transparent: not a real language model.
     private fun makeReply(message: String): String {
         val lower = message.lowercase()
         return when {
@@ -109,7 +122,7 @@ class ChatActivity : Activity() {
             listOf("rahmat", "raxmat").any { lower.contains(it) } ->
                 "Arzimaydi. Kerak bo‘lsa, yana yordam beraman."
             listOf("xafa", "yomonman", "zerik", "tushkun").any { lower.contains(it) } ->
-                "Tushundim. Hozir maslahat berishga shoshilmayman. Nima bo‘lganini aytib berishing mumkin."
+                "Tushundim. Maslahat berishga shoshilmayman. Nima bo‘lganini aytib berishing mumkin. Men tinglayman."
             listOf("anime", "manga", "manhwa").any { lower.contains(it) } ->
                 "Qiziqarli mavzu. Qahramonning kuchidan ko‘ra, uning qarorlari ko‘proq narsani ochib beradi."
             listOf("yordam", "reja", "qanday").any { lower.contains(it) } ->
@@ -121,18 +134,61 @@ class ChatActivity : Activity() {
         }
     }
 
-    private fun addMessage(who: String, text: String) {
-        messages.addView(TextView(this).apply {
-            this.text = "$who: $text"
-            textSize = 16f
-            setTextColor(if (who == "AIRA") Color.rgb(215, 198, 255) else Color.WHITE)
-            setPadding(dp(12), dp(10), dp(12), dp(10))
-            background = android.graphics.drawable.GradientDrawable().apply {
-                setColor(if (who == "AIRA") Color.rgb(38, 29, 62) else Color.rgb(37, 37, 45))
-                cornerRadius = dp(14).toFloat()
-            }
-        }, LinearLayout.LayoutParams(-1, -2).apply {
+    private fun appendMessage(who: String, text: String) {
+        history.add(who to text)
+        if (history.size > 80) history.removeAt(0)
+        renderMessage(who, text)
+        saveHistory()
+        scroll.post { scroll.fullScroll(ScrollView.FOCUS_DOWN) }
+    }
+
+    private fun renderMessage(who: String, text: String) {
+        val bubble = TextView(this).apply {
+            this.text = "$who\n$text"
+            textSize = 15f
+            setTextColor(if (who == "AIRA") Color.rgb(225, 213, 255) else Color.WHITE)
+            setPadding(dp(14), dp(10), dp(14), dp(10))
+            background = rounded(
+                if (who == "AIRA") Color.rgb(38, 29, 62) else Color.rgb(42, 40, 50),
+                dp(15).toFloat()
+            )
+        }
+        val params = LinearLayout.LayoutParams(-1, -2).apply {
             setMargins(0, dp(4), 0, dp(4))
-        })
+        }
+        messages.addView(bubble, params)
+    }
+
+    private fun rounded(color: Int, radius: Float) = GradientDrawable().apply {
+        setColor(color)
+        cornerRadius = radius
+    }
+
+    private fun saveHistory() {
+        val array = JSONArray()
+        history.forEach { (who, text) ->
+            array.put(JSONObject().put("who", who).put("text", text))
+        }
+        prefs.edit().putString("messages", array.toString()).apply()
+    }
+
+    private fun restoreHistory() {
+        val raw = prefs.getString("messages", null) ?: return
+        try {
+            val array = JSONArray(raw)
+            for (i in 0 until array.length()) {
+                val item = array.getJSONObject(i)
+                val who = item.optString("who")
+                val text = item.optString("text")
+                if (who.isNotBlank() && text.isNotBlank()) {
+                    history.add(who to text)
+                    renderMessage(who, text)
+                }
+            }
+        } catch (_: Exception) {
+            prefs.edit().remove("messages").apply()
+            history.clear()
+            messages.removeAllViews()
+        }
     }
 }
