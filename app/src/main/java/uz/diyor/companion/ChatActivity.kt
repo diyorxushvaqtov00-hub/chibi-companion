@@ -91,7 +91,8 @@ class ChatActivity : Activity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val modelFile = uz.diyor.companion.ai.AiraModelDownloader(this).modelFileIfPresent()
+        val downloader = uz.diyor.companion.ai.AiraModelDownloader(this)
+        val modelFile = downloader.modelFileIfPresent()
         aiProvider = if (modelFile != null) {
             uz.diyor.companion.ai.LocalLiteRtProvider(this, modelFile)
         } else {
@@ -123,7 +124,7 @@ class ChatActivity : Activity() {
         })
 
         aiStatus = TextView(this).apply {
-            text = "AI model holati tekshirilmoqda..."
+            text = modelFile?.let { "Model aniqlanmoqda: ${downloader.profileFor(it)?.displayName ?: it.name}" } ?: "Demo rejimi — model topilmadi."
             textSize = 11f
             gravity = Gravity.CENTER
             setTextColor(Color.rgb(175, 155, 215))
