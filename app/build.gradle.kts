@@ -31,4 +31,5 @@ kotlin {
 
 dependencies {
     implementation("com.google.ai.edge.litertlm:litertlm-android:0.19.1")
+    implementation("com.google.mlkit:text-recognition:16.0.1")
 }
