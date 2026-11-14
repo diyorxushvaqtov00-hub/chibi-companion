@@ -47,6 +47,11 @@ class ChatActivity : Activity() {
     private val history = mutableListOf<Pair<String, String>>()
     private lateinit var aiProvider: AiProvider
     private val prefs by lazy { getSharedPreferences("aira_chat", MODE_PRIVATE) }
+    private val companionPrefs by lazy { getSharedPreferences("companion_state", MODE_PRIVATE) }
+
+    private fun setAvatarState(state: ChibiView.AvatarState) {
+        companionPrefs.edit().putString("avatar_state", state.name).apply()
+    }
 
     override fun onResume() {
         super.onResume()
@@ -56,6 +61,7 @@ class ChatActivity : Activity() {
     override fun onPause() {
         speechRecognizer?.cancel()
         listening = false
+        setAvatarState(ChibiView.AvatarState.IDLE)
         if (::micButton.isInitialized) micButton.text = "🎙"
         getSharedPreferences("companion_state", MODE_PRIVATE).edit().putBoolean("app_visible", false).apply()
         super.onPause()
@@ -173,6 +179,7 @@ class ChatActivity : Activity() {
         val text = input.text.toString().trim()
         if (text.isEmpty()) return
         appendMessage("Sen", text)
+        setAvatarState(ChibiView.AvatarState.THINKING)
         input.setText("")
 
         val contextMessages = history.dropLast(1).takeLast(24).map { (who, content) ->
@@ -194,7 +201,12 @@ class ChatActivity : Activity() {
                 runOnUiThread {
                     val label = if (reply.isFallback) "AIRA · demo" else "AIRA"
                     appendMessage(label, reply.text)
-                    if (speakReplies) speak(reply.text)
+                    if (speakReplies) {
+                        setAvatarState(ChibiView.AvatarState.SPEAKING)
+                        speak(reply.text)
+                    } else {
+                        setAvatarState(ChibiView.AvatarState.IDLE)
+                    }
                 }
             }
 
@@ -206,6 +218,7 @@ class ChatActivity : Activity() {
                         is AiFailure.Internal -> failure.reason
                     }
                     appendMessage("AIRA", "Hozir javob bera olmadim: $reason")
+                    setAvatarState(ChibiView.AvatarState.IDLE)
                 }
             }
         })
@@ -269,6 +282,7 @@ class ChatActivity : Activity() {
             created.setRecognitionListener(object : RecognitionListener {
                 override fun onReadyForSpeech(params: Bundle?) {
                     listening = true
+                    setAvatarState(ChibiView.AvatarState.LISTENING)
                     micButton.text = "Tingla..."
                 }
 
@@ -281,6 +295,7 @@ class ChatActivity : Activity() {
 
                 override fun onEndOfSpeech() {
                     listening = false
+                    setAvatarState(ChibiView.AvatarState.IDLE)
                     micButton.text = "🎙"
                 }
 
@@ -318,9 +333,11 @@ class ChatActivity : Activity() {
         try {
             recognizer.startListening(intent)
             listening = true
+            setAvatarState(ChibiView.AvatarState.LISTENING)
             micButton.text = "Tingla..."
         } catch (error: Exception) {
             listening = false
+            setAvatarState(ChibiView.AvatarState.IDLE)
             micButton.text = "🎙"
             Toast.makeText(this, error.message ?: "Mikrofonni ishga tushirib bo‘lmadi.", Toast.LENGTH_LONG).show()
         }
