@@ -98,7 +98,10 @@ class MainActivity : Activity() {
             setTextColor(Color.GRAY)
             setPadding(0, dp(24), 0, 0)
         })
-        setContentView(android.widget.ScrollView(this).apply {\n            isFillViewport = true\n            addView(root)\n        })
+        setContentView(android.widget.ScrollView(this).apply {
+            isFillViewport = true
+            addView(root)
+        })
     }
 
     private fun startCompanion() {
