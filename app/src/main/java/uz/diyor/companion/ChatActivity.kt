@@ -301,6 +301,7 @@ class ChatActivity : Activity() {
 
                 override fun onError(error: Int) {
                     listening = false
+                    setAvatarState(ChibiView.AvatarState.IDLE)
                     micButton.text = "🎙"
                     if (error != SpeechRecognizer.ERROR_CLIENT) {
                         Toast.makeText(this@ChatActivity, "Ovoz aniqlanmadi. Yana urinib ko‘r.", Toast.LENGTH_SHORT).show()
@@ -309,6 +310,7 @@ class ChatActivity : Activity() {
 
                 override fun onResults(results: Bundle?) {
                     listening = false
+                    setAvatarState(ChibiView.AvatarState.IDLE)
                     micButton.text = "🎙"
                     val spoken = results
                         ?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
