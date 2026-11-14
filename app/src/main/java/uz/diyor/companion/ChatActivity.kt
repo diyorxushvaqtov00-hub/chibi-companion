@@ -12,8 +12,15 @@ import android.widget.ScrollView
 import android.widget.TextView
 
 class ChatActivity : Activity() {
-    override fun onResume() { super.onResume(); getSharedPreferences("companion_state", MODE_PRIVATE).edit().putBoolean("app_visible", true).apply() }
-    override fun onPause() { getSharedPreferences("companion_state", MODE_PRIVATE).edit().putBoolean("app_visible", false).apply(); super.onPause() }
+    override fun onResume() {
+        super.onResume()
+        getSharedPreferences("companion_state", MODE_PRIVATE).edit().putBoolean("app_visible", true).apply()
+    }
+
+    override fun onPause() {
+        getSharedPreferences("companion_state", MODE_PRIVATE).edit().putBoolean("app_visible", false).apply()
+        super.onPause()
+    }
 
     private lateinit var messages: LinearLayout
     private lateinit var input: EditText
@@ -21,24 +28,27 @@ class ChatActivity : Activity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        window.statusBarColor = Color.rgb(20, 8, 20)
-        window.navigationBarColor = Color.rgb(20, 8, 20)
+        window.statusBarColor = Color.rgb(12, 10, 22)
+        window.navigationBarColor = Color.rgb(12, 10, 22)
+
         val root = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             setPadding(dp(16), dp(16), dp(16), dp(12))
-            setBackgroundColor(Color.rgb(20, 8, 20))
+            setBackgroundColor(Color.rgb(12, 10, 22))
         }
         root.addView(TextView(this).apply {
-            text = "👑  MALIKA BILAN SUHBAT"
-            textSize = 20f
-            setTextColor(Color.rgb(255, 190, 220))
+            text = "✦  A I R A"
+            textSize = 22f
+            letterSpacing = 0.12f
+            setTextColor(Color.rgb(205, 185, 255))
             gravity = Gravity.CENTER
             setPadding(0, dp(8), 0, dp(12))
         })
         root.addView(TextView(this).apply {
-            text = "Hozircha internet/API talab qilmaydigan demo suhbat rejimi."
-            textSize = 12f
-            setTextColor(Color.LTGRAY)
+            text = "M1 • OFFLINE DEMO"
+            textSize = 11f
+            letterSpacing = 0.16f
+            setTextColor(Color.rgb(150, 140, 175))
             gravity = Gravity.CENTER
             setPadding(0, 0, 0, dp(10))
         })
@@ -49,9 +59,13 @@ class ChatActivity : Activity() {
         }
         scroll.addView(messages)
         root.addView(scroll, LinearLayout.LayoutParams(-1, 0, 1f))
-        val row = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL }
+
+        val row = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+        }
         input = EditText(this).apply {
-            hint = "Malikaga yoz..."
+            hint = "AIRA ga yoz..."
             setHintTextColor(Color.GRAY)
             setTextColor(Color.WHITE)
             setSingleLine(true)
@@ -66,9 +80,13 @@ class ChatActivity : Activity() {
         })
         root.addView(row)
         setContentView(root)
-        addMessage("Malika", "Salom! Men Malika 👑 Hozir demo rejimdaman. Nima haqida gaplashamiz?")
+
+        addMessage("AIRA", "Salom. Men AIRA. Odatda ortiqcha gapirmayman. Lekin seni tinglashga vaqtim bor.")
         input.setOnEditorActionListener { _, action, _ ->
-            if (action == EditorInfo.IME_ACTION_SEND) { sendMessage(); true } else false
+            if (action == EditorInfo.IME_ACTION_SEND) {
+                sendMessage()
+                true
+            } else false
         }
     }
 
@@ -77,35 +95,44 @@ class ChatActivity : Activity() {
         if (text.isEmpty()) return
         addMessage("Sen", text)
         input.setText("")
-        val lower = text.lowercase()
-        val reply = when {
+        addMessage("AIRA", makeReply(text))
+    }
+
+    // M1 placeholder persona logic. This is deliberately transparent: not a real language model.
+    private fun makeReply(message: String): String {
+        val lower = message.lowercase()
+        return when {
             listOf("salom", "assalom", "hello", "hi").any { lower.contains(it) } ->
-                "Salom-salom! 😊 Bugun kayfiyating qanday?"
+                "Salom. Seni eshitib turibman. Nima gap?"
             listOf("isming", "kimsan", "kim san").any { lower.contains(it) } ->
-                "Meni Malika deb atashing mumkin. Men sening chibi hamrohingman 👑"
+                "Men AIRA — virtual hamrohingman. Sovuqqon fikrlayman, ammo yaqinlarimga befarq emasman."
             listOf("rahmat", "raxmat").any { lower.contains(it) } ->
-                "Arzimaydi! 🖤 Yordam bera olganimdan xursandman."
-            listOf("zerik", "xafa", "yomon").any { lower.contains(it) } ->
-                "Yonindaman. Xohlasang, nima bo‘lganini aytib ber."
+                "Arzimaydi. Kerak bo‘lsa, yana yordam beraman."
+            listOf("xafa", "yomonman", "zerik", "tushkun").any { lower.contains(it) } ->
+                "Tushundim. Hozir maslahat berishga shoshilmayman. Nima bo‘lganini aytib berishing mumkin."
             listOf("anime", "manga", "manhwa").any { lower.contains(it) } ->
-                "Anime va manhwa mavzusi zo‘r! Qaysi qahramon senga ko‘proq yoqadi?"
+                "Qiziqarli mavzu. Qahramonning kuchidan ko‘ra, uning qarorlari ko‘proq narsani ochib beradi."
+            listOf("yordam", "reja", "qanday").any { lower.contains(it) } ->
+                "Avval muammoni aniq belgilaymiz. Keyin eng sodda va samarali yechimni tanlaymiz."
             lower.contains("?") ->
-                "Qiziq savol! Hozirgi demo rejimida internetdagi ma’lumotlarni tekshira olmayman, lekin suhbatni davom ettiramiz 😊"
-            else -> "Tushundim 🖤 Yana aytib ber-chi — seni tinglayapman."
+                "Savolingni tushundim. Hozir men demo rejimidaman, shuning uchun tashqi ma’lumotni tekshira olmayman. Keyingi bosqichda AI modeli ulanadi."
+            else ->
+                "Tushunarli. Davom et — gaplaringni diqqat bilan kuzatyapman."
         }
-        addMessage("Malika", reply)
     }
 
     private fun addMessage(who: String, text: String) {
         messages.addView(TextView(this).apply {
             this.text = "$who: $text"
             textSize = 16f
-            setTextColor(if (who == "Malika") Color.rgb(255, 190, 220) else Color.WHITE)
+            setTextColor(if (who == "AIRA") Color.rgb(215, 198, 255) else Color.WHITE)
             setPadding(dp(12), dp(10), dp(12), dp(10))
             background = android.graphics.drawable.GradientDrawable().apply {
-                setColor(if (who == "Malika") Color.rgb(52, 22, 47) else Color.rgb(37, 37, 45))
+                setColor(if (who == "AIRA") Color.rgb(38, 29, 62) else Color.rgb(37, 37, 45))
                 cornerRadius = dp(14).toFloat()
             }
-        }, LinearLayout.LayoutParams(-1, -2).apply { setMargins(0, dp(4), 0, dp(4)) })
+        }, LinearLayout.LayoutParams(-1, -2).apply {
+            setMargins(0, dp(4), 0, dp(4))
+        })
     }
 }
