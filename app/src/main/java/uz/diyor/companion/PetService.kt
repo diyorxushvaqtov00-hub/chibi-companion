@@ -10,13 +10,12 @@ import android.content.pm.ServiceInfo
 import android.graphics.PixelFormat
 import android.os.Build
 import android.os.IBinder
+import android.os.Handler
+import android.os.Looper
 import android.provider.Settings
 import android.view.Gravity
 import android.view.MotionEvent
 import android.view.WindowManager
-import android.widget.Toast
-import android.os.Handler
-import android.os.Looper
 
 class PetService : Service() {
     private var windowManager: WindowManager? = null
@@ -29,10 +28,11 @@ class PetService : Service() {
     private val handler = Handler(Looper.getMainLooper())
     private var compactNow = false
     private var overlayParams: WindowManager.LayoutParams? = null
+
     private val resizeCheck = object : Runnable {
         override fun run() {
-            val prefs = getSharedPreferences("companion_state", MODE_PRIVATE)
-            val appVisible = prefs.getBoolean("app_visible", false)
+            val appVisible = getSharedPreferences("companion_state", MODE_PRIVATE)
+                .getBoolean("app_visible", false)
             val shouldCompact = !appVisible
             if (shouldCompact != compactNow) setCompactMode(shouldCompact)
             handler.postDelayed(this, 500L)
@@ -44,9 +44,9 @@ class PetService : Service() {
         val params = overlayParams ?: return
         compactNow = compact
         pet.compactMode = compact
-        params.width = (resources.displayMetrics.density * if (compact) 32f else 64f).toInt()
-        params.height = (resources.displayMetrics.density * if (compact) 39f else 78f).toInt()
-        try { windowManager?.updateViewLayout(pet, params) } catch (_: Exception) {}
+        params.width = (resources.displayMetrics.density * if (compact) 42f else 84f).toInt()
+        params.height = (resources.displayMetrics.density * if (compact) 51f else 102f).toInt()
+        try { windowManager?.updateViewLayout(pet, params) } catch (_: Exception) { }
     }
 
     override fun onBind(intent: Intent?): IBinder? = null
@@ -56,18 +56,19 @@ class PetService : Service() {
             stopSelf()
             return START_NOT_STICKY
         }
+
         val manager = getSystemService(NotificationManager::class.java)
         manager.createNotificationChannel(
-            NotificationChannel("chibi", "Chibi Companion", NotificationManager.IMPORTANCE_LOW)
+            NotificationChannel("aira", "AIRA Companion", NotificationManager.IMPORTANCE_LOW)
         )
         val open = PendingIntent.getActivity(
             this, 1, Intent(this, MainActivity::class.java),
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
-        val notification = Notification.Builder(this, "chibi")
+        val notification = Notification.Builder(this, "aira")
             .setSmallIcon(android.R.drawable.ic_dialog_info)
-            .setContentTitle("Malika yordamchi ishlayapti")
-            .setContentText("Ekran ustidagi chibi yordamchi faol")
+            .setContentTitle("AIRA faol")
+            .setContentText("Virtual hamroh ekran ustida ishlayapti")
             .setContentIntent(open)
             .setOngoing(true)
             .build()
@@ -85,17 +86,18 @@ class PetService : Service() {
         windowManager = getSystemService(WINDOW_SERVICE) as WindowManager
         val pet = ChibiView(this)
         val params = WindowManager.LayoutParams(
-            (resources.displayMetrics.density * 64f).toInt(),
-            (resources.displayMetrics.density * 78f).toInt(),
+            (resources.displayMetrics.density * 84f).toInt(),
+            (resources.displayMetrics.density * 102f).toInt(),
             WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
             WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL,
             PixelFormat.TRANSLUCENT
         ).apply {
             gravity = Gravity.TOP or Gravity.START
-            alpha = 0.78f
+            alpha = 0.96f
             x = 20
             y = 180
         }
+
         pet.setOnTouchListener { _, event ->
             when (event.action) {
                 MotionEvent.ACTION_DOWN -> {
@@ -111,28 +113,27 @@ class PetService : Service() {
                     val dy = event.rawY - startY
                     if (kotlin.math.abs(dx) > 8 || kotlin.math.abs(dy) > 8) moved = true
                     if (moved) {
-                        // Keep the character fully inside the visible screen bounds.
                         val metrics = resources.displayMetrics
                         val maxX = (metrics.widthPixels - pet.width).coerceAtLeast(0)
                         val maxY = (metrics.heightPixels - pet.height).coerceAtLeast(0)
                         params.x = (originalX + dx).toInt().coerceIn(0, maxX)
                         params.y = (originalY + dy).toInt().coerceIn(0, maxY)
-                        try { windowManager?.updateViewLayout(pet, params) } catch (_: Exception) {}
+                        try { windowManager?.updateViewLayout(pet, params) } catch (_: Exception) { }
                     }
                     true
                 }
                 MotionEvent.ACTION_UP -> {
                     if (!moved) {
-                        val chat = Intent(this, ChatActivity::class.java).apply {
+                        startActivity(Intent(this, ChatActivity::class.java).apply {
                             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                        }
-                        startActivity(chat)
+                        })
                     }
                     true
                 }
                 else -> true
             }
         }
+
         petView = pet
         overlayParams = params
         windowManager?.addView(pet, params)
@@ -141,9 +142,7 @@ class PetService : Service() {
     }
 
     override fun onDestroy() {
-        try {
-            petView?.let { windowManager?.removeView(it) }
-        } catch (_: Exception) {}
+        try { petView?.let { windowManager?.removeView(it) } } catch (_: Exception) { }
         handler.removeCallbacks(resizeCheck)
         petView = null
         overlayParams = null
