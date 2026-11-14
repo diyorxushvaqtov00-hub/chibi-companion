@@ -60,7 +60,7 @@ class SettingsActivity : Activity() {
             setPadding(0, dp(22), 0, dp(12))
         })
         root.addView(TextView(this).apply {
-            text = "AIRA 1.6 • Android • Local-first"
+            text = "AIRA 1.7 • Android • Local-first"
             textSize = 11f
             gravity = Gravity.CENTER
             setTextColor(Color.GRAY)
